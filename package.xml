@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+    <name>erl_geometry_rviz_plugin</name>
+    <version>0.1.0</version>
+    <description>erl_geometry_rviz_plugin is a ROS package for visualizing erl_geometry_msgs.</description>
+    <author email="daizhirui@hotmail.com">Zhirui Dai</author>
+    <maintainer email="daizhirui@hotmail.com">Zhirui Dai</maintainer>
+    <license>MIT</license>
+    <url type="repository">https://github.com/ExistentialRobotics/erl_geometry_rviz_plugin.git</url>
+
+    <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+    <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+
+    <depend condition="$ROS_VERSION == 1">roscpp</depend>
+    <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+
+    <!-- common ROS dependencies -->
+    <depend>std_msgs</depend>
+    <depend>nav_msgs</depend>
+    <depend>geometry_msgs</depend>
+    <depend>sensor_msgs</depend>
+    <depend>tf2_ros</depend>
+
+    <!-- rviz plugin dependencies -->
+    <depend condition="$ROS_VERSION == 1">rviz</depend>
+    <depend condition="$ROS_VERSION == 1">OGRE</depend>
+    <depend condition="$ROS_VERSION == 2">pluginlib</depend>
+    <depend condition="$ROS_VERSION == 2">rviz_common</depend>
+    <depend condition="$ROS_VERSION == 2">rviz_rendering</depend>
+    <depend condition="$ROS_VERSION == 2">rviz_default_plugins</depend>
+    <depend>qtbase5-dev</depend>
+    <depend>libqt5-core</depend>
+    <depend>libqt5-widgets</depend>
+
+    <!-- ERL dependencies -->
+    <depend>erl_common</depend>
+    <depend>erl_geometry</depend>
+    <depend>erl_geometry_msgs</depend>
+
+    <!-- other dependencies -->
+    <depend>absl</depend>
+    <depend>Qhull</depend>
+    <depend>Open3D</depend>
+
+    <!-- message generation dependencies -->
+    <build_depend condition="$ROS_VERSION == 1">message_generation</build_depend>
+    <exec_depend condition="$ROS_VERSION == 1">message_runtime</exec_depend>
+    <build_depend condition="$ROS_VERSION == 2">rosidl_default_generators</build_depend>
+    <exec_depend condition="$ROS_VERSION == 2">rosidl_default_runtime</exec_depend>
+    <member_of_group condition="$ROS_VERSION == 2">rosidl_interface_packages</member_of_group>
+
+    <export>
+        <rviz condition="$ROS_VERSION == 1" plugin="${prefix}/plugin_description.xml" />
+        <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
+    </export>
+
+</package>
