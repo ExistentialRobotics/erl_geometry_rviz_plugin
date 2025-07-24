@@ -149,7 +149,8 @@ private:
             constexpr bool lazy_eval = true;
             constexpr bool discrete = true;
             m_octree_->ClearChangedKeys();
-            m_octree_->InsertPointCloud(points, sensor_origin, -1, parallel, lazy_eval, discrete);
+            m_octree_
+                ->InsertPointCloud(points, sensor_origin, 0, -1, parallel, lazy_eval, discrete);
             if (lazy_eval) {
                 m_octree_->UpdateInnerOccupancy();
                 m_octree_->Prune();
@@ -266,6 +267,7 @@ private:
             m_tree_->InsertPointCloud(
                 points,
                 translation.cast<Dtype>(),
+                0.0,
                 -1,
                 parallel,
                 lazy_eval,

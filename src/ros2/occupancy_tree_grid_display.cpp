@@ -92,6 +92,7 @@ namespace erl::geometry::rviz_plugin {
 
     void
     OccupancyTreeGridDisplay::onInitialize() {
+        Super::onInitialize();
         std::lock_guard<std::mutex> guard(m_mutex_);
         m_box_size_.resize(kMaxTreeDepth);
         m_clouds_.resize(kMaxTreeDepth);
@@ -107,7 +108,7 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    OccupancyTreeGridDisplay::update(float /* wall_dt */, float /* ros_dt */) {
+    OccupancyTreeGridDisplay::update(float wall_dt, float ros_dt) {
         if (m_new_points_received_) {
             std::lock_guard<std::mutex> lock(m_mutex_);
 
@@ -126,12 +127,13 @@ namespace erl::geometry::rviz_plugin {
             m_new_points_received_ = false;
         }
         UpdateFromTf();
+        Super::update(wall_dt, ros_dt);
     }
 
     void
     OccupancyTreeGridDisplay::reset() {
-        Super::reset();
         Clear();
+        Super::reset();
     }
 
     void
@@ -167,14 +169,13 @@ namespace erl::geometry::rviz_plugin {
     void
     OccupancyTreeGridDisplay::onEnable() {
         scene_node_->setVisible(true);
-        subscribe();
+        Super::onEnable();
     }
 
     void
     OccupancyTreeGridDisplay::onDisable() {
         scene_node_->setVisible(false);
-        unsubscribe();
-        Clear();
+        Super::onDisable();
     }
 
     template<typename Dtype>

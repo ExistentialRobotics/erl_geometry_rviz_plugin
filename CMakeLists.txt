@@ -18,5 +18,6 @@ erl_setup_ros(
     ROS2_COMPONENTS pluginlib rviz_common rviz_default_plugins erl_geometry_msgs)
 erl_add_ros_src()
 erl_add_tests(LIBRARIES Open3D::Open3D)
-erl_install(EXECUTABLES ${${PROJECT_NAME}_COLLECTED_EXECUTABLES})
+erl_install(LIBRARIES ${${PROJECT_NAME}_COLLECTED_LIBRARIES} #
+            EXECUTABLES ${${PROJECT_NAME}_COLLECTED_EXECUTABLES})
 erl_mark_project_found()

@@ -19,12 +19,14 @@
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
-#include <memory>
 #include <QColor>
+#include <memory>
 
 namespace erl::geometry::rviz_plugin {
     class RVIZ_DEFAULT_PLUGINS_PUBLIC BetterPointCloud2Display
         : public rviz_common::MessageFilterDisplay<sensor_msgs::msg::PointCloud2> {
+        // Enable Qt signals and slots
+        Q_OBJECT
     private:
         std::unique_ptr<rviz_default_plugins::PointCloudCommon> m_point_cloud_common_ = nullptr;
         std::unique_ptr<rviz_default_plugins::displays::MarkerCommon> m_marker_common_ = nullptr;
@@ -77,7 +79,7 @@ namespace erl::geometry::rviz_plugin {
             float &color_ch_min,
             float &color_ch_max);
 
-    private Q_SLOTS:
+    protected Q_SLOTS:
         void
         UpdateShowNormals();
 
