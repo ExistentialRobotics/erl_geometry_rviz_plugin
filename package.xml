@@ -11,6 +11,7 @@
 
     <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+    <buildtool_depend>erl_cmake_tools</buildtool_depend>    <!-- required -->
 
     <depend condition="$ROS_VERSION == 1">roscpp</depend>
     <depend condition="$ROS_VERSION == 2">rclcpp</depend>
@@ -35,13 +36,9 @@
 
     <!-- ERL dependencies -->
     <depend>erl_common</depend>
+    <depend>erl_covariance</depend>
     <depend>erl_geometry</depend>
     <depend>erl_geometry_msgs</depend>
-
-    <!-- other dependencies -->
-    <depend>absl</depend>
-    <depend>Qhull</depend>
-    <depend>Open3D</depend>
 
     <!-- message generation dependencies -->
     <build_depend condition="$ROS_VERSION == 1">message_generation</build_depend>
