@@ -1,3 +1,4 @@
+#include "erl_common/block_timer.hpp"
 #include "erl_common/eigen.hpp"
 #include "erl_geometry/house_expo_map_lidar_2d.hpp"
 #include "erl_geometry/lidar_2d.hpp"
@@ -145,12 +146,20 @@ private:
         }
         {
             ERL_BLOCK_TIMER_MSG("Insert time");
+            constexpr bool with_count = false;
             constexpr bool parallel = true;
             constexpr bool lazy_eval = true;
             constexpr bool discrete = true;
             m_octree_->ClearChangedKeys();
-            m_octree_
-                ->InsertPointCloud(points, sensor_origin, 0, -1, parallel, lazy_eval, discrete);
+            m_octree_->InsertPointCloud(
+                points,
+                sensor_origin,
+                0,
+                -1,
+                with_count,
+                parallel,
+                lazy_eval,
+                discrete);
             if (lazy_eval) {
                 m_octree_->UpdateInnerOccupancy();
                 m_octree_->Prune();
@@ -261,6 +270,7 @@ private:
         }
         {
             ERL_BLOCK_TIMER_MSG("Insert time");
+            constexpr bool with_count = false;
             constexpr bool parallel = true;
             constexpr bool lazy_eval = true;
             constexpr bool discrete = true;
@@ -269,6 +279,7 @@ private:
                 translation.cast<Dtype>(),
                 0.0,
                 -1,
+                with_count,
                 parallel,
                 lazy_eval,
                 discrete);
