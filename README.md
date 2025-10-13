@@ -1,8 +1,10 @@
 # erl_geometry_rviz_plugin
 
+[![Tags](https://img.shields.io/github/v/tag/ExistentialRobotics/erl_geometry_rviz_plugin?label=version)](https://github.com/ExistentialRobotics/erl_geometry_rviz_plugin/tags)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ROS1](https://img.shields.io/badge/ROS1-noetic-blue)](http://wiki.ros.org/)
 [![ROS2](https://img.shields.io/badge/ROS2-humble-blue)](https://docs.ros.org/)
+[![ROS2](https://img.shields.io/badge/ROS2-jazzy-blue)](https://docs.ros.org/)
 
 A collection of custom RViz plugins for visualizing geometry data structures and enhanced point cloud displays. This package provides specialized visualization tools for occupancy trees, enhanced point clouds with normal vectors, and other geometric data.
 
