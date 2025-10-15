@@ -234,7 +234,7 @@ namespace erl::geometry::rviz_plugin {
         palette_stream.reset(new Ogre::MemoryDataStream(palette_bytes.data(), 256 * 4));
 
         static int palette_tex_count = 0;
-        std::string tex_name = "MapPaletteTexture" + std::to_string(palette_tex_count++);
+        std::string tex_name = "GridMapPaletteTexture" + std::to_string(palette_tex_count++);
         return Ogre::TextureManager::getSingleton().loadRawData(
             tex_name,
             "rviz_rendering",
