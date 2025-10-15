@@ -8,9 +8,10 @@
 
 A collection of custom RViz plugins for visualizing geometry data structures and enhanced point cloud displays. This package provides specialized visualization tools for occupancy trees, enhanced point clouds with normal vectors, and other geometric data.
 
-|                                                         |                                                         |                                                        |
-| ------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------ |
-| ![](launch/assets/test_better_point_cloud2_display.png) | ![](launch/assets/test_occupancy_tree_grid_display.png) | ![](launch/assets/test_occupancy_tree_map_display.png) |
+|                                                         |                                                        |
+| ------------------------------------------------------- | ------------------------------------------------------ |
+| ![](launch/assets/test_better_point_cloud2_display.png) | ![](launch/assets/test_grid_map_display.png)           |
+| ![](launch/assets/test_occupancy_tree_grid_display.png) | ![](launch/assets/test_occupancy_tree_map_display.png) |
 
 ## Features
 
@@ -31,6 +32,20 @@ Enhanced point cloud visualization with support for displaying normal vectors an
 - Improved rendering performance over standard PointCloud2 display
 
 **Message Type:** `sensor_msgs/PointCloud2`
+
+### GridMap Display
+Visualizes 2D grid maps with support for multiple data types and flexible value encoding.
+
+**Features:**
+- Support for multiple data encodings (INT8, UINT8, INT16, UINT16, INT32, UINT32, FLOAT32, FLOAT64)
+- Rich color scheme options (map, costmap, raw, jet, hot, cool, rainbow, spring, summer, autumn, winter, viridis, and reversed variants)
+- Binary representation mode with configurable threshold
+- Automatic or manual min/max value scaling for color mapping
+- Incremental map updates support
+- Configurable transparency and rendering order
+- Transform timestamp control
+
+**Message Type:** `erl_geometry_msgs/GridMapMsg`
 
 ### OccupancyTreeGrid Display
 Visualizes occupancy quadtrees (2D) or octrees (3D) as individual grid cells.
@@ -149,6 +164,7 @@ First, remember to source your workspace.
    - `erl_geometry_rviz_plugin/OccupancyTreeGrid`
    - `erl_geometry_rviz_plugin/OccupancyTreeMap`
    - `erl_geometry_rviz_plugin/BetterPointCloud2`
+   - `erl_geometry_rviz_plugin/GridMapDisplay`
 
 </details>
 
@@ -159,9 +175,10 @@ First, remember to source your workspace.
 2. Click "Add" in the Displays panel
 3. Select "By display type" tab
 4. Find plugins under:
-   - `erl_geometry/OccupancyTreeGrid`
-   - `erl_geometry/OccupancyTreeMap`
-   - `BetterPointCloud2`
+   - `erl_geometry_rviz_plugin/OccupancyTreeGrid`
+   - `erl_geometry_rviz_plugin/OccupancyTreeMap`
+   - `erl_geometry_rviz_plugin/BetterPointCloud2`
+   - `erl_geometry_rviz_plugin/GridMapDisplay`
 
 </details>
 
@@ -202,6 +219,16 @@ roslaunch erl_geometry_rviz_plugin test_rviz_plugin_occupancy_tree_display.launc
 
 ```bash
 ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_occupancy_tree_display_launch.py
+```
+</details>
+
+#### GridMap Display Test
+
+<details>
+<summary><b>ROS2</b></summary>
+
+```bash
+ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_grid_map_display_launch.py
 ```
 </details>
 

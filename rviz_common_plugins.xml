@@ -15,4 +15,10 @@
             available.
         </description>
     </class>
+    <class name="GridMapDisplay" type="erl::geometry::rviz_plugin::GridMapDisplay" base_class_type="rviz_common::Display">
+        <description>
+            Display a grid map (erl_geometry_msgs::GridMapMsg), which supports different value
+            types, as a colored 2D map.
+        </description>
+    </class>
 </library>
