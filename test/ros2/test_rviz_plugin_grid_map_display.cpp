@@ -18,8 +18,8 @@ class TestGridMapDisplayNode : public rclcpp::Node {
     erl::geometry::GridMapEncoding m_encoding_ = erl::geometry::GridMapEncoding::FLOAT32;
 
     std::string m_topic_ = "grid_map";
-    std::string m_topic_qos_reliability_ = "reliable";
-    std::string m_topic_qos_durability_ = "volatile";
+    std::string m_topic_reliability_ = "reliable";
+    std::string m_topic_durability_ = "volatile";
 
     rclcpp::Publisher<erl_geometry_msgs::msg::GridMapMsg>::SharedPtr m_pub_;
     rclcpp::TimerBase::SharedPtr m_timer_;
@@ -70,25 +70,25 @@ public:
         m_height_ = this->get_parameter("height").as_int();
 
         rclcpp::QoS qos(rclcpp::KeepLast(10));
-        if (m_topic_qos_reliability_ == "reliable") {
+        if (m_topic_reliability_ == "reliable") {
             qos.reliable();
-        } else if (m_topic_qos_reliability_ == "best_effort") {
+        } else if (m_topic_reliability_ == "best_effort") {
             qos.best_effort();
         } else {
             RCLCPP_ERROR(
                 this->get_logger(),
-                "Unsupported qos_reliability: %s",
-                m_topic_qos_reliability_.c_str());
+                "Unsupported reliability: %s",
+                m_topic_reliability_.c_str());
         }
-        if (m_topic_qos_durability_ == "volatile") {
+        if (m_topic_durability_ == "volatile") {
             qos.durability_volatile();
-        } else if (m_topic_qos_durability_ == "transient_local") {
+        } else if (m_topic_durability_ == "transient_local") {
             qos.transient_local();
         } else {
             RCLCPP_ERROR(
                 this->get_logger(),
-                "Unsupported qos_durability: %s",
-                m_topic_qos_durability_.c_str());
+                "Unsupported durability: %s",
+                m_topic_durability_.c_str());
         }
 
         m_pub_ = this->create_publisher<erl_geometry_msgs::msg::GridMapMsg>(m_topic_, qos);
