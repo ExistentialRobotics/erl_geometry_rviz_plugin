@@ -254,7 +254,6 @@ namespace erl::geometry::rviz_plugin {
         size_t map_width = map.info.width;
 
         auto pixels = std::vector<unsigned char>(pixels_size, 255);
-        GridMapEncoding encoding = static_cast<GridMapEncoding>(map.encoding);
 
         uint8_t *pixel_data = pixels.data();
         const std::size_t scalar_size = GetScalarSize(map.encoding);

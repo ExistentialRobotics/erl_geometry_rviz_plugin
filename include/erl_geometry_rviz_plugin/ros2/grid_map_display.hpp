@@ -49,8 +49,8 @@
 
 #include "erl_geometry_msgs/msg/grid_map_msg.hpp"
 #include "erl_geometry_msgs/msg/grid_map_update_msg.hpp"
-#include "nav_msgs/msg/map_meta_data.hpp"
 
+#include <nav_msgs/msg/map_meta_data.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp/time.hpp>
 #include <rviz_common/message_filter_display.hpp>

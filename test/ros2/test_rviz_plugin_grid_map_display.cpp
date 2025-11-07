@@ -162,7 +162,10 @@ main(int argc, char **argv) {
     } else if (encoding == "uint32") {
         node = std::make_shared<TestGridMapDisplayNode<uint32_t>>();
     } else {
-        RCLCPP_ERROR(temp_node->get_logger(), "Unsupported encoding: %s", encoding.c_str());
+        RCLCPP_ERROR(
+            rclcpp::get_logger("test_grid_map_display_node"),
+            "Unsupported encoding: %s",
+            encoding.c_str());
         return -1;
     }
 
