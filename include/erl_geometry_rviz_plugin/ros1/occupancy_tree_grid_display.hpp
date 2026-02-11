@@ -39,6 +39,7 @@ namespace erl::geometry::rviz_plugin {
         rviz::RosTopicProperty* m_tree_topic_property_ = nullptr;
         rviz::EnumProperty* m_tree_render_mode_property_ = nullptr;
         rviz::EnumProperty* m_tree_color_mode_property_ = nullptr;
+        rviz::FloatProperty* m_tree_scale_property_ = nullptr;
         rviz::IntProperty* m_tree_depth_property_ = nullptr;
         rviz::FloatProperty* m_alpha_property_ = nullptr;
         rviz::FloatProperty* m_max_height_property_ = nullptr;

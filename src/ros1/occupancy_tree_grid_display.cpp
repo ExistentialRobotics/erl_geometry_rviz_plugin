@@ -8,9 +8,9 @@
 #include "erl_geometry/occupancy_octree_base.hpp"
 #include "erl_geometry/occupancy_quadtree_base.hpp"
 
+#include <boost/bind.hpp>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreSceneNode.h>
-#include <boost/bind.hpp>
 #include <rviz/frame_manager.h>
 #include <rviz/properties/status_property.h>
 #include <rviz/visualization_manager.h>
@@ -48,8 +48,8 @@ namespace erl::geometry::rviz_plugin {
             "",
             QString::fromStdString(
                 ros::message_traits::datatype<erl_geometry_msgs::OccupancyTreeMsg>()),
-            "erl_geometry_msgs::OccupancyTreeMsg topic to subscribe to (binary or full probability "
-            "map)",
+            "erl_geometry_msgs::OccupancyTreeMsg topic to subscribe to "
+            "(binary or full probability map)",
             this,
             SLOT(UpdateTreeTopic()));
 
@@ -74,6 +74,10 @@ namespace erl::geometry::rviz_plugin {
         m_tree_color_mode_property_->addOption("Cell Color", CELL_COLOR);
         m_tree_color_mode_property_->addOption("Z-Axis", Z_AXIS_COLOR);
         m_tree_color_mode_property_->addOption("Cell Probability", PROBABLILTY_COLOR);
+
+        m_tree_scale_property_ =
+            new rviz::FloatProperty("Voxel Scale", 1.0, "Voxel scale factor from message", this);
+
         m_alpha_property_ = new rviz::FloatProperty(
             "Voxel Alpha",
             1.0,
@@ -224,7 +228,7 @@ namespace erl::geometry::rviz_plugin {
 
         try {
             Unsubscribe();
-            const std::string& kTopicStr = m_tree_topic_property_->getStdString();
+            const std::string &kTopicStr = m_tree_topic_property_->getStdString();
             if (!kTopicStr.empty()) {
                 m_sub_.reset(
                     new message_filters::Subscriber<erl_geometry_msgs::OccupancyTreeMsg>());
@@ -232,7 +236,7 @@ namespace erl::geometry::rviz_plugin {
                 m_sub_->registerCallback(
                     boost::bind(&OccupancyTreeGridDisplay::IncomingMessageCallback, this, _1));
             }
-        } catch (ros::Exception& e) {
+        } catch (ros::Exception &e) {
             setStatus(
                 rviz::StatusProperty::Error,
                 "Topic",
@@ -246,7 +250,7 @@ namespace erl::geometry::rviz_plugin {
 
         try {
             m_sub_.reset();  // reset filters
-        } catch (ros::Exception& e) {
+        } catch (ros::Exception &e) {
             setStatus(
                 rviz::StatusProperty::Error,
                 "Topic",
@@ -257,7 +261,7 @@ namespace erl::geometry::rviz_plugin {
     template<typename Dtype>
     void
     OccupancyTreeGridDisplay::IncomingMessageCallbackForQuadtree(
-        const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg) {
+        const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg) {
 
         auto tree_setting = std::make_shared<OccupancyQuadtreeBaseSetting>();
         auto abstract_tree = AbstractQuadtree<Dtype>::CreateTree(msg->tree_type, tree_setting);
@@ -297,13 +301,21 @@ namespace erl::geometry::rviz_plugin {
         m_tree_depth_property_->setMax(static_cast<int>(tree_depth));
 
         // get dimensions of quadtree
+        const double scale = msg->scale;
+        m_tree_scale_property_->setFloat(static_cast<float>(scale));
         Dtype min_x, min_y, max_x, max_y;
         tree->GetMetricMinMax(min_x, min_y, max_x, max_y);
+        min_x /= scale;
+        min_y /= scale;
+        max_x /= scale;
+        max_y /= scale;
 
         // reset rviz pointcloud classes
         for (uint32_t i = 0; i < kMaxTreeDepth; ++i) {
             m_point_buf_[i].clear();
-            if (i < tree_depth) { m_box_size_[i] = tree->GetNodeSize(i + 1); }  // skip depth 0
+            if (i < tree_depth) {
+                m_box_size_[i] = tree->GetNodeSize(i + 1) / scale;
+            }  // skip depth 0
         }
 
         std::size_t point_count = 0;
@@ -314,7 +326,7 @@ namespace erl::geometry::rviz_plugin {
         const int render_mode_mask = m_tree_render_mode_property_->getOptionInt();
 
         for (auto it = tree->GetTreeIterator(selected_depth); it->IsValid(); it->Next()) {
-            const auto* node = static_cast<const OccupancyQuadtreeNode*>(it->GetNode());
+            const auto *node = static_cast<const OccupancyQuadtreeNode *>(it->GetNode());
             if (node == nullptr) {
                 setStatusStd(rviz::StatusProperty::Error, "Message", "Failed to get node.");
                 return;
@@ -340,7 +352,7 @@ namespace erl::geometry::rviz_plugin {
                     for (key[idx_1] = node_key[idx_1] + diff[0] + 1;
                          key[idx_1] < node_key[idx_1] + diff[1];
                          node_key[idx_1] += step_size) {
-                        const auto* neighbor_node = static_cast<const OccupancyQuadtreeNode*>(
+                        const auto *neighbor_node = static_cast<const OccupancyQuadtreeNode *>(
                             tree->SearchNode(node_key, selected_depth));
                         if (!neighbor_node ||
                             !((static_cast<int>(tree->IsNodeOccupied(neighbor_node)) + 1) &
@@ -356,16 +368,18 @@ namespace erl::geometry::rviz_plugin {
             if (all_neighbors_found) { continue; }  // skip occluded voxels
 
             // display voxel if it does not have all the neighbors.
+            const double x = it->GetX() / scale;
+            const double y = it->GetY() / scale;
             rviz::PointCloud::Point new_point;
-            new_point.position.x = it->GetX();
-            new_point.position.y = it->GetY();
+            new_point.position.x = x;
+            new_point.position.y = y;
             new_point.position.z = z;
             // set color
             switch (static_cast<VoxelColorMode>(m_tree_color_mode_property_->getOptionInt())) {
                 case CELL_COLOR: {
-                    auto color_node = static_cast<const ColoredOccupancyQuadtreeNode*>(node);
+                    auto color_node = static_cast<const ColoredOccupancyQuadtreeNode *>(node);
                     if (color_node) {
-                        auto& color = color_node->GetColor();
+                        auto &color = color_node->GetColor();
                         new_point.setColor(
                             static_cast<float>(color[0]) / 255.0f,
                             static_cast<float>(color[1]) / 255.0f,
@@ -383,9 +397,9 @@ namespace erl::geometry::rviz_plugin {
                 }
                 case Z_AXIS_COLOR: {
                     if (tree->IsNodeOccupied(node)) {
-                        SetColor(it->GetX(), min_x, max_x, new_point);
+                        SetColor(x, min_x, max_x, new_point);
                     } else {
-                        SetColor(it->GetY(), min_x, max_x, new_point);
+                        SetColor(y, min_y, max_y, new_point);
                     }
                     break;
                 }
@@ -407,14 +421,14 @@ namespace erl::geometry::rviz_plugin {
             m_new_points_received_ = true;
             for (size_t i = 0; i < kMaxTreeDepth; ++i) { m_new_points_[i].swap(m_point_buf_[i]); }
             m_is_2d_ = true;
-            m_tree_resolution_ = tree->GetResolution();
+            m_tree_resolution_ = tree->GetResolution() / scale;
         }
     }
 
     template<typename Dtype>
     void
     OccupancyTreeGridDisplay::IncomingMessageCallbackForOctree(
-        const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg) {
+        const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg) {
 
         auto tree_setting = std::make_shared<OccupancyOctreeBaseSetting>();
         auto abstract_tree = AbstractOctree<Dtype>::CreateTree(msg->tree_type, tree_setting);
@@ -452,13 +466,22 @@ namespace erl::geometry::rviz_plugin {
         m_tree_depth_property_->setMax(static_cast<int>(tree_depth));
 
         // get dimensions of octree
+        const double scale = msg->scale;
+        m_tree_scale_property_->setFloat(static_cast<float>(scale));
         Dtype min_x, min_y, min_z, max_x, max_y, max_z;
         tree->GetMetricMinMax(min_x, min_y, min_z, max_x, max_y, max_z);
+        min_x /= scale;
+        min_y /= scale;
+        min_z /= scale;
+        max_x /= scale;
+        max_y /= scale;
+        max_z /= scale;
 
         // reset rviz pointcloud classes
         for (uint32_t i = 0; i < kMaxTreeDepth; ++i) {
             m_point_buf_[i].clear();
-            if (i < tree_depth) { m_box_size_[i] = tree->GetNodeSize(i + 1); }  // skip depth 0
+            // skip depth 0, which is the root node and does not represent any voxel
+            if (i < tree_depth) { m_box_size_[i] = tree->GetNodeSize(i + 1) / scale; }
         }
 
         std::size_t point_count = 0;
@@ -468,13 +491,13 @@ namespace erl::geometry::rviz_plugin {
         const int step_size = 1 << (tree_depth - selected_depth);  // for pruning of occluded voxels
         const int render_mode_mask = m_tree_render_mode_property_->getOptionInt();
         for (auto it = tree->GetTreeIterator(selected_depth); it->IsValid(); it->Next()) {
-            const auto* node = static_cast<const OccupancyOctreeNode*>(it->GetNode());
+            const auto *node = static_cast<const OccupancyOctreeNode *>(it->GetNode());
             if (node == nullptr) {
                 setStatusStd(rviz::StatusProperty::Error, "Message", "Failed to get node.");
                 return;
             }
             if (node->HasAnyChild()) { continue; }  // skip inner nodes
-            double z = it->GetZ();
+            const double z = it->GetZ() / scale;
             if (z > max_height || z < min_height) { continue; }  // skip out of range voxels
             // render mode: 0b01 for free voxels, 0b10 for occupied voxels
             auto node_render_mode = static_cast<int>(tree->IsNodeOccupied(node)) + 1;
@@ -500,7 +523,7 @@ namespace erl::geometry::rviz_plugin {
                         for (node_key[idx_2] = node_key[idx_2] + diff[0] + 1;
                              node_key[idx_2] < node_key[idx_2] + diff[1];
                              node_key[idx_2] += step_size) {
-                            const auto* neighbor_node = static_cast<const OccupancyOctreeNode*>(
+                            const auto *neighbor_node = static_cast<const OccupancyOctreeNode *>(
                                 tree->SearchNode(node_key, selected_depth));
                             if (!neighbor_node ||
                                 !((static_cast<int>(tree->IsNodeOccupied(neighbor_node)) + 1) &
@@ -517,16 +540,18 @@ namespace erl::geometry::rviz_plugin {
             if (all_neighbors_found) { continue; }  // skip voxels with all neighbors
 
             // display voxel if it does not have all the neighbors.
+            const double x = it->GetX() / scale;
+            const double y = it->GetY() / scale;
             rviz::PointCloud::Point new_point;
-            new_point.position.x = it->GetX();
-            new_point.position.y = it->GetY();
+            new_point.position.x = x;
+            new_point.position.y = y;
             new_point.position.z = z;
             // set voxel color
             switch (static_cast<VoxelColorMode>(m_tree_color_mode_property_->getOptionInt())) {
                 case CELL_COLOR: {
-                    auto colored_node = dynamic_cast<const ColoredOccupancyOctreeNode*>(node);
+                    auto colored_node = dynamic_cast<const ColoredOccupancyOctreeNode *>(node);
                     if (colored_node) {
-                        auto& color = colored_node->GetColor();
+                        auto &color = colored_node->GetColor();
                         new_point.setColor(
                             static_cast<float>(color[0]) / 255.0f,
                             static_cast<float>(color[1]) / 255.0f,
@@ -565,13 +590,13 @@ namespace erl::geometry::rviz_plugin {
             m_new_points_received_ = true;
             for (size_t i = 0; i < kMaxTreeDepth; ++i) { m_new_points_[i].swap(m_point_buf_[i]); }
             m_is_2d_ = false;
-            m_tree_resolution_ = tree->GetResolution();
+            m_tree_resolution_ = tree->GetResolution() / scale;
         }
     }
 
     void
     OccupancyTreeGridDisplay::IncomingMessageCallback(
-        const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg) {
+        const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg) {
         ++m_messages_received_;
         setStatus(
             rviz::StatusProperty::Ok,
@@ -603,7 +628,7 @@ namespace erl::geometry::rviz_plugin {
         double z_pos,
         double min_z,
         double max_z,
-        rviz::PointCloud::Point& point) {
+        rviz::PointCloud::Point &point) {
 
         // hsv to rgb conversion
         constexpr float s = 1.0;
@@ -648,7 +673,7 @@ namespace erl::geometry::rviz_plugin {
     void
     OccupancyTreeGridDisplay::Clear() {
         std::lock_guard<std::mutex> guard(m_mutex_);
-        for (auto& cloud: m_clouds_) { cloud->clear(); }  // reset rviz pointcloud boxes
+        for (auto &cloud: m_clouds_) { cloud->clear(); }  // reset rviz pointcloud boxes
     }
 
     bool

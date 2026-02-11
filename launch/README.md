@@ -54,6 +54,30 @@ Launch Files
   ```
   </details>
 
-  |                                                              |
-  | ------------------------------------------------------------ |
+  |                                                  |
+  | ------------------------------------------------ |
   | ![](assets/test_better_point_cloud2_display.png) |
+
+
+- **test_rviz_plugin_grid_map_display**:
+  Launches the `test_rviz_plugin_grid_map_display` node to test the rviz plugin for visualizing a grid map.
+
+  <details>
+  <summary><b>ROS1 Usage</b></summary>
+
+  ```shell
+  roslaunch erl_geometry_rviz_plugin test_rviz_plugin_grid_map_display.launch
+  ```
+  </details>
+
+  <details>
+  <summary><b>ROS2 Usage</b></summary>
+
+  ```shell
+  ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_grid_map_display_launch.py
+  ```
+  </details>
+
+  |                                       |
+  | ------------------------------------- |
+  | ![](assets/test_grid_map_display.png) |

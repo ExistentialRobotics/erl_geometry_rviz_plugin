@@ -18,6 +18,7 @@ namespace erl::geometry::rviz_plugin {
     private:
         std::shared_ptr<message_filters::Subscriber<erl_geometry_msgs::OccupancyTreeMsg>> m_sub_;
 
+        rviz::FloatProperty *m_tree_scale_property_ = nullptr;
         rviz::IntProperty* m_tree_depth_property_;
         rviz::FloatProperty* m_max_height_property_ = nullptr;
         rviz::FloatProperty* m_min_height_property_ = nullptr;

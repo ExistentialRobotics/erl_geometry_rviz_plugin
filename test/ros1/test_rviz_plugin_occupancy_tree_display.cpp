@@ -163,7 +163,7 @@ private:
             ERL_BLOCK_TIMER_MSG("Publish time");
             using namespace erl::geometry;
             erl_geometry_msgs::OccupancyTreeMsg msg;
-            bool ok = SaveToOccupancyTreeMsg<Dtype>(m_octree_, m_publish_binary_msg_, msg);
+            bool ok = SaveToOccupancyTreeMsg<Dtype>(m_octree_, 1.0, m_publish_binary_msg_, msg);
             if (!ok) {
                 ROS_WARN("Failed to save occupancy tree to message");
                 return;
@@ -296,7 +296,7 @@ private:
             ERL_BLOCK_TIMER_MSG("Publish time");
             using namespace erl::geometry;
             erl_geometry_msgs::OccupancyTreeMsg msg;
-            bool ok = SaveToOccupancyTreeMsg<Dtype>(m_tree_, m_publish_binary_msg_, msg);
+            bool ok = SaveToOccupancyTreeMsg<Dtype>(m_tree_, 1.0, m_publish_binary_msg_, msg);
             if (!ok) {
                 ROS_WARN("Failed to save occupancy tree to message");
                 return;

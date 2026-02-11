@@ -23,6 +23,7 @@ namespace erl::geometry::rviz_plugin {
 
     private:
         rclcpp::Subscription<erl_geometry_msgs::msg::OccupancyTreeMsg>::SharedPtr m_sub_ = nullptr;
+        rviz_common::properties::FloatProperty* m_tree_scale_property_ = nullptr;
         rviz_common::properties::IntProperty* m_tree_depth_property_ = nullptr;
         rviz_common::properties::FloatProperty* m_max_height_property_ = nullptr;
         rviz_common::properties::FloatProperty* m_min_height_property_ = nullptr;

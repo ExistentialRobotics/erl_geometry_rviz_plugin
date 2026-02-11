@@ -225,6 +225,14 @@ ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_occupancy_tree_display_lau
 #### GridMap Display Test
 
 <details>
+<summary><b>ROS1</b></summary>
+
+```shell
+roslaunch erl_geometry_rviz_plugin test_rviz_plugin_grid_map_display.launch
+```
+</details>
+
+<details>
 <summary><b>ROS2</b></summary>
 
 ```bash

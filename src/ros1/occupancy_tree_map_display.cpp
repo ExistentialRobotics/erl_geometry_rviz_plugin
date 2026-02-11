@@ -21,6 +21,9 @@ namespace erl::geometry::rviz_plugin {
         topic_property_->setDescription(
             "erl_geometry_msgs::OccupancyTreeMsg topic to subscribe to.");
 
+        m_tree_scale_property_ =
+            new rviz::FloatProperty("Voxel Scale", 1.0, "Voxel scale factor from message", this);
+
         m_tree_depth_property_ = new rviz::IntProperty(
             "Max. Octree Depth",
             kMaxTreeDepth,
@@ -139,7 +142,10 @@ namespace erl::geometry::rviz_plugin {
             return;
         }
 
-        m_tree_resolution_inv_ = 1.0 / tree->GetResolution();
+        const double scale = msg->scale;
+        m_tree_scale_property_->setFloat(static_cast<float>(scale));
+
+        m_tree_resolution_inv_ = scale / tree->GetResolution();
         const uint32_t tree_depth = tree->GetTreeDepth();
         m_tree_max_depth_ = tree_depth;
         m_tree_key_offset_ = 1 << (tree_depth - 1);
@@ -150,7 +156,11 @@ namespace erl::geometry::rviz_plugin {
         // get dimensions of quadtree
         Dtype min_x, min_y, max_x, max_y;
         tree->GetMetricMinMax(min_x, min_y, max_x, max_y);
-        double res = tree->GetNodeSize(selected_depth);
+        min_x /= scale;
+        min_y /= scale;
+        max_x /= scale;
+        max_y /= scale;
+        double res = tree->GetNodeSize(selected_depth) / scale;
         min_x -= res;
         min_y -= res;
         auto width = static_cast<uint32_t>(std::ceil((max_x - min_x) / res) + 1);
@@ -249,7 +259,10 @@ namespace erl::geometry::rviz_plugin {
             return;
         }
 
-        m_tree_resolution_inv_ = 1.0 / tree->GetResolution();
+        const double scale = msg->scale;
+        m_tree_scale_property_->setFloat(static_cast<float>(scale));
+
+        m_tree_resolution_inv_ = scale / tree->GetResolution();
         const uint32_t tree_depth = tree->GetTreeDepth();
         m_tree_max_depth_ = tree_depth;
         m_tree_key_offset_ = 1 << (tree_depth - 1);
@@ -260,7 +273,13 @@ namespace erl::geometry::rviz_plugin {
         // get dimensions of octree
         Dtype min_x, min_y, min_z, max_x, max_y, max_z;
         tree->GetMetricMinMax(min_x, min_y, min_z, max_x, max_y, max_z);
-        double res = tree->GetNodeSize(selected_depth);
+        min_x /= scale;
+        min_y /= scale;
+        min_z /= scale;
+        max_x /= scale;
+        max_y /= scale;
+        max_z /= scale;
+        double res = tree->GetNodeSize(selected_depth) / scale;
         min_x -= res;
         min_y -= res;
         auto width = static_cast<uint32_t>(std::ceil((max_x - min_x) / res) + 1);

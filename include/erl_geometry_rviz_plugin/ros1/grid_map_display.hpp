@@ -41,37 +41,36 @@
     #include <OgreMaterial.h>
     #include <OgreSharedPtr.h>
     #include <OgreTexture.h>
-    #include <OgreVector.h>
+    #include <OgreVector3.h>
+
+    #include <message_filters/subscriber.h>
+    #include <ros/ros.h>
 
 #endif  // Q_MOC_RUN
 
 #include "swatch.hpp"
 
-#include "erl_geometry_msgs/msg/grid_map_msg.hpp"
-#include "erl_geometry_msgs/msg/grid_map_update_msg.hpp"
+#include "erl_geometry_msgs/GridMapMsg.h"
+#include "erl_geometry_msgs/GridMapUpdateMsg.h"
 
-#include <nav_msgs/msg/map_meta_data.hpp>
-#include <rclcpp/qos.hpp>
-#include <rclcpp/time.hpp>
-#include <rviz_common/message_filter_display.hpp>
-#include <rviz_default_plugins/visibility_control.hpp>
+#include <nav_msgs/MapMetaData.h>
+#include <rviz/message_filter_display.h>
 
 namespace Ogre {
     class ManualObject;
 }
 
-namespace rviz_common {
-    namespace properties {
-
-        class EnumProperty;
-        class FloatProperty;
-        class IntProperty;
-        class Property;
-        class QuaternionProperty;
-        class VectorProperty;
-
-    }  // namespace properties
-}  // namespace rviz_common
+namespace rviz {
+    class EnumProperty;
+    class FloatProperty;
+    class IntProperty;
+    class Property;
+    class QuaternionProperty;
+    class VectorProperty;
+    class BoolProperty;
+    class StringProperty;
+    class RosTopicProperty;
+}  // namespace rviz
 
 namespace erl::geometry::rviz_plugin {
 
@@ -79,12 +78,10 @@ namespace erl::geometry::rviz_plugin {
      * \class GridMapDisplay
      * \brief Displays a map along the XY plane.
      */
-    class RVIZ_DEFAULT_PLUGINS_PUBLIC GridMapDisplay
-        : public rviz_common::MessageFilterDisplay<erl_geometry_msgs::msg::GridMapMsg> {
+    class GridMapDisplay : public rviz::MessageFilterDisplay<erl_geometry_msgs::GridMapMsg> {
         Q_OBJECT
 
     public:
-        explicit GridMapDisplay(rviz_common::DisplayContext *context);
         GridMapDisplay();
         ~GridMapDisplay() override;
 
@@ -112,7 +109,7 @@ namespace erl::geometry::rviz_plugin {
 
         /** @brief Copy msg into m_current_map_ and call showMap(). */
         void
-        processMessage(erl_geometry_msgs::msg::GridMapMsg::ConstSharedPtr msg) override;
+        processMessage(const erl_geometry_msgs::GridMapMsg::ConstPtr &msg) override;
 
     public Q_SLOTS:
         void
@@ -127,7 +124,7 @@ namespace erl::geometry::rviz_plugin {
         void
         updateAlpha();
         void
-        updateDrawUnder() const;
+        updateDrawUnder();
         void
         updatePalette();
         void
@@ -157,14 +154,13 @@ namespace erl::geometry::rviz_plugin {
 
         /** @brief Copy update's data into m_current_map_ and call showMap(). */
         void
-        incomingUpdate(erl_geometry_msgs::msg::GridMapUpdateMsg::ConstSharedPtr update);
+        incomingUpdate(const erl_geometry_msgs::GridMapUpdateMsg::ConstPtr &update);
 
         bool
-        updateDataOutOfBounds(
-            erl_geometry_msgs::msg::GridMapUpdateMsg::ConstSharedPtr update) const;
+        updateDataOutOfBounds(const erl_geometry_msgs::GridMapUpdateMsg::ConstPtr &update) const;
 
         void
-        updateMapDataInMemory(erl_geometry_msgs::msg::GridMapUpdateMsg::ConstSharedPtr update);
+        updateMapDataInMemory(const erl_geometry_msgs::GridMapUpdateMsg::ConstPtr &update);
 
         void
         clear();
@@ -181,7 +177,7 @@ namespace erl::geometry::rviz_plugin {
         void
         createSwatches();
         void
-        doubleSwatchNumber(size_t &swatch_width, size_t &swatch_height, int &number_swatches) const;
+        doubleSwatchNumber(size_t &swatch_width, size_t &swatch_height, int &number_swatches);
         void
         tryCreateSwatches(
             size_t width,
@@ -193,7 +189,7 @@ namespace erl::geometry::rviz_plugin {
         size_t
         getEffectiveDimension(size_t map_dimension, size_t swatch_dimension, size_t position);
         void
-        updateSwatches() const;
+        updateSwatches();
 
         std::vector<std::shared_ptr<erl::geometry::rviz_plugin::Swatch>> m_swatches_;
         std::vector<Ogre::TexturePtr> m_palette_textures_, m_palette_textures_binary_;
@@ -204,30 +200,28 @@ namespace erl::geometry::rviz_plugin {
         size_t m_width_;
         size_t m_height_;
         std::string m_frame_;
-        erl_geometry_msgs::msg::GridMapMsg m_current_map_;
+        erl_geometry_msgs::GridMapMsg m_current_map_;
 
-        rclcpp::Subscription<erl_geometry_msgs::msg::GridMapUpdateMsg>::SharedPtr
-            m_update_subscription_;
-        rclcpp::QoS m_update_profile_;
-        rclcpp::Time m_subscription_start_time_;
+        std::shared_ptr<message_filters::Subscriber<erl_geometry_msgs::GridMapUpdateMsg>>
+            m_update_subscriber_;
+        ros::Time m_subscription_start_time_;
 
-        rviz_common::properties::RosTopicProperty *m_update_topic_property_;
-        rviz_common::properties::QosProfileProperty *m_update_profile_property_;
-        rviz_common::properties::FloatProperty *m_resolution_property_;
-        rviz_common::properties::IntProperty *m_width_property_;
-        rviz_common::properties::IntProperty *m_height_property_;
-        rviz_common::properties::StringProperty *m_encoding_property_;
-        rviz_common::properties::VectorProperty *m_position_property_;
-        rviz_common::properties::QuaternionProperty *m_orientation_property_;
-        rviz_common::properties::FloatProperty *m_alpha_property_;
-        rviz_common::properties::Property *m_draw_under_property_;
-        rviz_common::properties::EnumProperty *m_color_scheme_property_;
-        rviz_common::properties::BoolProperty *m_transform_timestamp_property_;
-        rviz_common::properties::BoolProperty *m_binary_view_property_;
-        rviz_common::properties::IntProperty *m_binary_threshold_property_;
-        rviz_common::properties::FloatProperty *m_min_map_value_property_;
-        rviz_common::properties::FloatProperty *m_max_map_value_property_;
-        rviz_common::properties::BoolProperty *m_auto_min_max_property_;
+        rviz::RosTopicProperty *m_update_topic_property_;
+        rviz::FloatProperty *m_resolution_property_;
+        rviz::IntProperty *m_width_property_;
+        rviz::IntProperty *m_height_property_;
+        rviz::StringProperty *m_encoding_property_;
+        rviz::VectorProperty *m_position_property_;
+        rviz::QuaternionProperty *m_orientation_property_;
+        rviz::FloatProperty *m_alpha_property_;
+        rviz::Property *m_draw_under_property_;
+        rviz::EnumProperty *m_color_scheme_property_;
+        rviz::BoolProperty *m_transform_timestamp_property_;
+        rviz::BoolProperty *m_binary_view_property_;
+        rviz::IntProperty *m_binary_threshold_property_;
+        rviz::FloatProperty *m_min_map_value_property_;
+        rviz::FloatProperty *m_max_map_value_property_;
+        rviz::BoolProperty *m_auto_min_max_property_;
 
         uint32_t m_update_messages_received_;
     };

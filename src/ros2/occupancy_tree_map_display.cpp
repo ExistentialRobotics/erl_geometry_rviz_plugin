@@ -23,6 +23,12 @@ namespace erl::geometry::rviz_plugin {
         topic_property_->setMessageType(message_type);
         topic_property_->setDescription(message_type + " topic to subscribe to.");
 
+        m_tree_scale_property_ = new rviz_common::properties::FloatProperty(
+            "Voxel Scale",
+            1.0,
+            "Voxel scale factor from message",
+            this);
+
         m_tree_depth_property_ = new rviz_common::properties::IntProperty(
             "Max. Octree Depth",
             kMaxTreeDepth,
@@ -85,7 +91,7 @@ namespace erl::geometry::rviz_plugin {
             unsubscribe();
 
             rclcpp::SubscriptionOptions sub_opts;
-            sub_opts.event_callbacks.message_lost_callback = [&](rclcpp::QOSMessageLostInfo& info) {
+            sub_opts.event_callbacks.message_lost_callback = [&](rclcpp::QOSMessageLostInfo &info) {
                 setStatus(
                     rviz_common::properties::StatusProperty::Warn,
                     "Topic",
@@ -108,7 +114,7 @@ namespace erl::geometry::rviz_plugin {
                 sub_opts);
             subscription_start_time_ = node->now();
             setStatus(rviz_common::properties::StatusProperty::Ok, "Topic", "OK");
-        } catch (std::exception& e) {
+        } catch (std::exception &e) {
             setStatus(
                 rviz_common::properties::StatusProperty::Error,
                 "Topic",
@@ -122,7 +128,7 @@ namespace erl::geometry::rviz_plugin {
 
         try {
             m_sub_.reset();  // reset filters
-        } catch (std::exception& e) {
+        } catch (std::exception &e) {
             setStatus(
                 rviz_common::properties::StatusProperty::Error,
                 "Topic",
@@ -133,7 +139,7 @@ namespace erl::geometry::rviz_plugin {
     template<typename Dtype>
     void
     OccupancyTreeMapDisplay::HandleMessageForQuadtree(
-        const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr& msg) {
+        const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr &msg) {
 
         auto tree_setting = std::make_shared<OccupancyQuadtreeBaseSetting>();
         auto abstract_tree = AbstractQuadtree<Dtype>::CreateTree(msg->tree_type, tree_setting);
@@ -160,7 +166,10 @@ namespace erl::geometry::rviz_plugin {
             return;
         }
 
-        m_tree_resolution_inv_ = 1.0 / tree->GetResolution();
+        const double scale = msg->scale;
+        m_tree_scale_property_->setFloat(static_cast<float>(scale));
+
+        m_tree_resolution_inv_ = scale / tree->GetResolution();
         const uint32_t tree_depth = tree->GetTreeDepth();
         m_tree_max_depth_ = tree_depth;
         m_tree_key_offset_ = 1 << (tree_depth - 1);
@@ -171,7 +180,11 @@ namespace erl::geometry::rviz_plugin {
         // get dimensions of quadtree
         Dtype min_x, min_y, max_x, max_y;
         tree->GetMetricMinMax(min_x, min_y, max_x, max_y);
-        double res = tree->GetNodeSize(selected_depth);
+        min_x /= scale;
+        min_y /= scale;
+        max_x /= scale;
+        max_y /= scale;
+        double res = tree->GetNodeSize(selected_depth) / scale;
         min_x -= res;
         min_y -= res;
         auto width = static_cast<uint32_t>(std::ceil((max_x - min_x) / res) + 1);
@@ -195,7 +208,7 @@ namespace erl::geometry::rviz_plugin {
 
         // traverse all leafs in the tree:
         for (auto it = tree->GetTreeIterator(selected_depth); it->IsValid(); it->Next()) {
-            const auto* node = static_cast<const OccupancyQuadtreeNode*>(it->GetNode());
+            const auto *node = static_cast<const OccupancyQuadtreeNode *>(it->GetNode());
             if (node == nullptr) {
                 setStatusStd(
                     rviz_common::properties::StatusProperty::Error,
@@ -249,7 +262,7 @@ namespace erl::geometry::rviz_plugin {
     template<typename Dtype>
     void
     OccupancyTreeMapDisplay::HandleMessageForOctree(
-        const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr& msg) {
+        const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr &msg) {
 
         auto tree_setting = std::make_shared<OccupancyOctreeBaseSetting>();
         auto abstract_tree = AbstractOctree<Dtype>::CreateTree(msg->tree_type, tree_setting);
@@ -276,7 +289,10 @@ namespace erl::geometry::rviz_plugin {
             return;
         }
 
-        m_tree_resolution_inv_ = 1.0 / tree->GetResolution();
+        const double scale = msg->scale;
+        m_tree_scale_property_->setFloat(static_cast<float>(scale));
+
+        m_tree_resolution_inv_ = scale / tree->GetResolution();
         const uint32_t tree_depth = tree->GetTreeDepth();
         m_tree_max_depth_ = tree_depth;
         m_tree_key_offset_ = 1 << (tree_depth - 1);
@@ -287,7 +303,13 @@ namespace erl::geometry::rviz_plugin {
         // get dimensions of octree
         Dtype min_x, min_y, min_z, max_x, max_y, max_z;
         tree->GetMetricMinMax(min_x, min_y, min_z, max_x, max_y, max_z);
-        double res = tree->GetNodeSize(selected_depth);
+        min_x /= scale;
+        min_y /= scale;
+        min_z /= scale;
+        max_x /= scale;
+        max_y /= scale;
+        max_z /= scale;
+        double res = tree->GetNodeSize(selected_depth) / scale;
         min_x -= res;
         min_y -= res;
         auto width = static_cast<uint32_t>(std::ceil((max_x - min_x) / res) + 1);
@@ -315,7 +337,7 @@ namespace erl::geometry::rviz_plugin {
         const double min_height = std::max<double>(m_min_height_property_->getFloat(), min_z);
 
         for (auto it = tree->GetTreeIterator(selected_depth); it->IsValid(); it->Next()) {
-            const auto* node = static_cast<const OccupancyOctreeNode*>(it->GetNode());
+            const auto *node = static_cast<const OccupancyOctreeNode *>(it->GetNode());
             if (node == nullptr) {
                 setStatusStd(
                     rviz_common::properties::StatusProperty::Error,
@@ -368,7 +390,7 @@ namespace erl::geometry::rviz_plugin {
 
     void
     OccupancyTreeMapDisplay::HandleMessage(
-        const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr& msg) {
+        const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr &msg) {
         if (msg->dim == 2) {
             if (msg->is_double) {
                 HandleMessageForQuadtree<double>(msg);
@@ -416,7 +438,7 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    OccupancyTreeMapDisplay::KeyToCoord(const OctreeKey& key, double& x, double& y, double& z)
+    OccupancyTreeMapDisplay::KeyToCoord(const OctreeKey &key, double &x, double &y, double &z)
         const {
         const double r = 1.0 / m_tree_resolution_inv_;
         double diff_x = static_cast<double>(key[0]) - static_cast<double>(m_tree_key_offset_);
@@ -429,11 +451,11 @@ namespace erl::geometry::rviz_plugin {
 
     void
     OccupancyTreeMapDisplay::KeyToCoord(
-        const OctreeKey& key,
+        const OctreeKey &key,
         uint32_t depth,
-        double& x,
-        double& y,
-        double& z) const {
+        double &x,
+        double &y,
+        double &z) const {
         if (depth == 0) {
             x = 0.0;
             y = 0.0;
@@ -479,7 +501,7 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    OccupancyTreeMapDisplay::KeyToCoord(const QuadtreeKey& key, double& x, double& y) const {
+    OccupancyTreeMapDisplay::KeyToCoord(const QuadtreeKey &key, double &x, double &y) const {
         const double r = 1.0 / m_tree_resolution_inv_;
         double diff_x = static_cast<double>(key[0]) - static_cast<double>(m_tree_key_offset_);
         double diff_y = static_cast<double>(key[1]) - static_cast<double>(m_tree_key_offset_);
@@ -489,10 +511,10 @@ namespace erl::geometry::rviz_plugin {
 
     void
     OccupancyTreeMapDisplay::KeyToCoord(
-        const QuadtreeKey& key,
+        const QuadtreeKey &key,
         uint32_t depth,
-        double& x,
-        double& y) const {
+        double &x,
+        double &y) const {
         if (depth == 0) {
             x = 0.0;
             y = 0.0;

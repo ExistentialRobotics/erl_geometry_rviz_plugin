@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Static transform publisher: map -> odom -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher"
+        args="0 0 0 0 0 0 map odom" />
+
+    <!-- Test grid map display node -->
+    <node pkg="erl_geometry_rviz_plugin" type="test_rviz_plugin_grid_map_display"
+        name="test_grid_map_display_node" output="screen">
+        <param name="encoding" value="float" />
+        <param name="frequency" value="2.0" />
+        <param name="publish_rate" value="5.0" />
+        <param name="magnitude" value="10.0" />
+        <param name="resolution" value="0.1" />
+        <param name="x" value="0.0" />
+        <param name="y" value="0.0" />
+        <param name="width" value="100" />
+        <param name="height" value="100" />
+    </node>
+
+    <!-- RViz -->
+    <node pkg="rviz" type="rviz" name="rviz"
+        args="-d $(find erl_geometry_rviz_plugin)/rviz/test_rviz_plugin_grid_map_display.rviz" />
+
+</launch>

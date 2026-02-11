@@ -28,31 +28,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "erl_geometry_rviz_plugin/ros2/grid_map_display.hpp"
+#include "erl_geometry_rviz_plugin/ros1/grid_map_display.hpp"
 
-#include "erl_geometry_msgs/ros2/grid_map_msg_encoding.hpp"
-#include "erl_geometry_rviz_plugin/ros2/palette_builder.hpp"
+#include "erl_geometry_msgs/ros1/grid_map_msg_encoding.hpp"
+#include "erl_geometry_rviz_plugin/ros1/palette_builder.hpp"
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 #include <OgreSharedPtr.h>
 #include <OgreTechnique.h>
 #include <OgreTextureManager.h>
-#include <rclcpp/time.hpp>
-#include <rviz_common/display_context.hpp>
-#include <rviz_common/logging.hpp>
-#include <rviz_common/msg_conversions.hpp>
-#include <rviz_common/properties/enum_property.hpp>
-#include <rviz_common/properties/float_property.hpp>
-#include <rviz_common/properties/int_property.hpp>
-#include <rviz_common/properties/property.hpp>
-#include <rviz_common/properties/quaternion_property.hpp>
-#include <rviz_common/properties/ros_topic_property.hpp>
-#include <rviz_common/properties/vector_property.hpp>
-#include <rviz_common/validate_floats.hpp>
-#include <rviz_default_plugins/displays/map/palette_builder.hpp>
-#include <rviz_rendering/material_manager.hpp>
-#include <rviz_rendering/objects/grid.hpp>
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/grid.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/quaternion_property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/properties/vector_property.h>
+#include <rviz/validate_floats.h>
 
 #include <algorithm>
 #include <memory>
@@ -66,11 +64,12 @@ namespace erl::geometry::rviz_plugin {
           m_resolution_(0.0f),
           m_width_(0),
           m_height_(0),
-          m_update_profile_(rclcpp::QoS(5)),
           m_update_messages_received_(0) {
         connect(this, SIGNAL(mapUpdated()), this, SLOT(showMap()));
 
-        m_update_topic_property_ = new rviz_common::properties::RosTopicProperty(
+        Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+
+        m_update_topic_property_ = new rviz::RosTopicProperty(
             "Update Topic",
             "",
             "",
@@ -82,11 +81,7 @@ namespace erl::geometry::rviz_plugin {
             this,
             SLOT(updateMapUpdateTopic()));
 
-        m_update_profile_property_ = new rviz_common::properties::QosProfileProperty(
-            m_update_topic_property_,
-            m_update_profile_);
-
-        m_alpha_property_ = new rviz_common::properties::FloatProperty(
+        m_alpha_property_ = new rviz::FloatProperty(
             "Alpha",
             0.7f,
             "Amount of transparency to apply to the map.",
@@ -95,7 +90,7 @@ namespace erl::geometry::rviz_plugin {
         m_alpha_property_->setMin(0);
         m_alpha_property_->setMax(1);
 
-        m_color_scheme_property_ = new rviz_common::properties::EnumProperty(
+        m_color_scheme_property_ = new rviz::EnumProperty(
             "Color Scheme",
             "map",
             "How to color the occupancy values.",
@@ -125,7 +120,7 @@ namespace erl::geometry::rviz_plugin {
         m_color_scheme_property_->addOption("viridis", 19);
         m_color_scheme_property_->addOption("viridis (reversed)", 20);
 
-        m_draw_under_property_ = new rviz_common::properties::BoolProperty(
+        m_draw_under_property_ = new rviz::BoolProperty(
             "Draw Behind",
             false,
             "Rendering option, controls whether or not the map is always"
@@ -133,56 +128,50 @@ namespace erl::geometry::rviz_plugin {
             this,
             SLOT(updateDrawUnder()));
 
-        m_resolution_property_ = new rviz_common::properties::FloatProperty(
-            "Resolution",
-            0,
-            "Resolution of the map. (not editable)",
-            this);
+        m_resolution_property_ =
+            new rviz::FloatProperty("Resolution", 0, "Resolution of the map. (not editable)", this);
         m_resolution_property_->setReadOnly(true);
 
-        m_width_property_ = new rviz_common::properties::IntProperty(
-            "Width",
-            0,
-            "Width of the map, in meters. (not editable)",
-            this);
+        m_width_property_ =
+            new rviz::IntProperty("Width", 0, "Width of the map, in meters. (not editable)", this);
         m_width_property_->setReadOnly(true);
 
-        m_height_property_ = new rviz_common::properties::IntProperty(
+        m_height_property_ = new rviz::IntProperty(
             "Height",
             0,
             "Height of the map, in meters. (not editable)",
             this);
         m_height_property_->setReadOnly(true);
 
-        m_encoding_property_ = new rviz_common::properties::StringProperty(
+        m_encoding_property_ = new rviz::StringProperty(
             "Encoding",
             "",
             "Encoding of the map data. (not editable)",
             this);
         m_encoding_property_->setReadOnly(true);
 
-        m_position_property_ = new rviz_common::properties::VectorProperty(
+        m_position_property_ = new rviz::VectorProperty(
             "Position",
             Ogre::Vector3::ZERO,
             "Position of the bottom left corner of the map, in meters. (not editable)",
             this);
         m_position_property_->setReadOnly(true);
 
-        m_orientation_property_ = new rviz_common::properties::QuaternionProperty(
+        m_orientation_property_ = new rviz::QuaternionProperty(
             "Orientation",
             Ogre::Quaternion::IDENTITY,
             "Orientation of the map. (not editable)",
             this);
         m_orientation_property_->setReadOnly(true);
 
-        m_transform_timestamp_property_ = new rviz_common::properties::BoolProperty(
+        m_transform_timestamp_property_ = new rviz::BoolProperty(
             "Use Timestamp",
             false,
             "Use map header timestamp when transforming",
             this,
             SLOT(transformMap()));
 
-        m_binary_view_property_ = new rviz_common::properties::BoolProperty(
+        m_binary_view_property_ = new rviz::BoolProperty(
             "Binary representation",
             false,
             "Represent the map value as either free or occupied, considering the user-defined "
@@ -190,7 +179,7 @@ namespace erl::geometry::rviz_plugin {
             this,
             SLOT(updatePalette()));
 
-        m_binary_threshold_property_ = new rviz_common::properties::IntProperty(
+        m_binary_threshold_property_ = new rviz::IntProperty(
             "Binary threshold",
             100,
             "Minimum value to mark cells as obstacle in the binary representation of the map",
@@ -199,21 +188,21 @@ namespace erl::geometry::rviz_plugin {
         m_binary_threshold_property_->setMin(0);
         m_binary_threshold_property_->setMax(100);
 
-        m_min_map_value_property_ = new rviz_common::properties::FloatProperty(
+        m_min_map_value_property_ = new rviz::FloatProperty(
             "Min map value",
             0.0f,
             "Minimum map value, used for scaling the color palette.",
             this,
             SLOT(updateMapValueRange()));
 
-        m_max_map_value_property_ = new rviz_common::properties::FloatProperty(
+        m_max_map_value_property_ = new rviz::FloatProperty(
             "Max map value",
             255.0f,
             "Maximum map value, used for scaling the color palette.",
             this,
             SLOT(updateMapValueRange()));
 
-        m_auto_min_max_property_ = new rviz_common::properties::BoolProperty(
+        m_auto_min_max_property_ = new rviz::BoolProperty(
             "Auto min/max",
             false,
             "Automatically compute the min and max map values from incoming data.",
@@ -228,14 +217,19 @@ namespace erl::geometry::rviz_plugin {
 
     static Ogre::TexturePtr
     makePaletteTexture(std::vector<unsigned char> palette_bytes) {
-        Ogre::DataStreamPtr palette_stream;
-        palette_stream.reset(new Ogre::MemoryDataStream(palette_bytes.data(), 256 * 4));
+        Ogre::DataStreamPtr palette_stream(
+            new Ogre::MemoryDataStream(palette_bytes.data(), 256 * 4));
 
         static int palette_tex_count = 0;
         std::string tex_name = "GridMapPaletteTexture" + std::to_string(palette_tex_count++);
-        return Ogre::TextureManager::getSingleton().loadRawData(
+
+        auto &texture_manager = Ogre::TextureManager::getSingleton();
+        if (texture_manager.resourceExists(tex_name)) {
+            return texture_manager.getByName(tex_name);
+        }
+        return texture_manager.loadRawData(
             tex_name,
-            "rviz_rendering",
+            Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
             palette_stream,
             256,
             1,
@@ -244,67 +238,12 @@ namespace erl::geometry::rviz_plugin {
             0);
     }
 
-    GridMapDisplay::GridMapDisplay(rviz_common::DisplayContext *context)
-        : GridMapDisplay() {
-        context_ = context;
-        scene_manager_ = context->getSceneManager();
-        scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
-
-        m_palette_textures_.clear();
-        m_palette_textures_.push_back(makePaletteTexture(makeMapPalette()));
-        m_color_scheme_transparency_.push_back(false);
-        m_palette_textures_.push_back(makePaletteTexture(makeCostmapPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeRawPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeJetPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeJetReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeHotPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeHotReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeCoolPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeCoolReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeRainbowPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeRainbowReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeSpringPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeSpringReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeSummerPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeSummerReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeAutumnPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeAutumnReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeWinterPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeWinterReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeViridisPalette()));
-        m_color_scheme_transparency_.push_back(true);
-        m_palette_textures_.push_back(makePaletteTexture(makeViridisReversedPalette()));
-        m_color_scheme_transparency_.push_back(true);
-    }
-
     void
     GridMapDisplay::onInitialize() {
         MFDClass::onInitialize();
-        rviz_ros_node_ = context_->getRosNodeAbstraction();
-        m_update_topic_property_->initialize(rviz_ros_node_);
+        scene_manager_ = context_->getSceneManager();
+        scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
 
-        m_update_profile_property_->initialize([this](rclcpp::QoS profile) {
-            this->m_update_profile_ = profile;
-            updateMapUpdateTopic();
-        });
         int threshold = m_binary_threshold_property_->getInt();
         // Order of palette textures here must match option indices for m_color_scheme_property_
         m_palette_textures_.clear();
@@ -376,7 +315,7 @@ namespace erl::geometry::rviz_plugin {
 
     void
     GridMapDisplay::updateTopic() {
-        m_update_topic_property_->setValue(topic_property_->getTopic() + "_updates");
+        m_update_topic_property_->setStdString(topic_property_->getStdString() + "_updates");
         MFDClass::updateTopic();
     }
 
@@ -384,9 +323,9 @@ namespace erl::geometry::rviz_plugin {
     GridMapDisplay::subscribe() {
         if (!isEnabled()) { return; }
 
-        if (topic_property_->isEmpty()) {
+        if (topic_property_->getStdString().empty()) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Topic",
                 QString("Error subscribing: Empty topic name"));
             return;
@@ -400,32 +339,18 @@ namespace erl::geometry::rviz_plugin {
     void
     GridMapDisplay::subscribeToUpdateTopic() {
         try {
-            rclcpp::SubscriptionOptions sub_opts;
-            sub_opts.event_callbacks.message_lost_callback = [&](rclcpp::QOSMessageLostInfo &info) {
-                std::ostringstream sstm;
-                sstm << "Some messages were lost:\n>\tNumber of new lost messages: "
-                     << info.total_count_change
-                     << " \n>\tTotal number of messages lost: " << info.total_count;
-                setStatus(
-                    rviz_common::properties::StatusProperty::Warn,
-                    "Update Topic",
-                    QString(sstm.str().c_str()));
-            };
-
-            rclcpp::Node::SharedPtr node = rviz_ros_node_.lock()->get_raw_node();
-            m_update_subscription_ =
-                node->template create_subscription<erl_geometry_msgs::msg::GridMapUpdateMsg>(
-                    m_update_topic_property_->getTopicStd(),
-                    m_update_profile_,
-                    [this](const erl_geometry_msgs::msg::GridMapUpdateMsg::ConstSharedPtr message) {
-                        incomingUpdate(message);
-                    },
-                    sub_opts);
-            m_subscription_start_time_ = node->now();
-            setStatus(rviz_common::properties::StatusProperty::Ok, "Update Topic", "OK");
-        } catch (rclcpp::exceptions::InvalidTopicNameError &e) {
+            const std::string &topic_str = m_update_topic_property_->getStdString();
+            if (!topic_str.empty()) {
+                m_update_subscriber_.reset(
+                    new message_filters::Subscriber<erl_geometry_msgs::GridMapUpdateMsg>());
+                m_update_subscriber_->subscribe(update_nh_, topic_str, 5);
+                m_update_subscriber_->registerCallback(
+                    boost::bind(&GridMapDisplay::incomingUpdate, this, _1));
+            }
+            setStatus(rviz::StatusProperty::Ok, "Update Topic", "OK");
+        } catch (ros::Exception &e) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Update Topic",
                 QString("Error subscribing: ") + e.what());
         }
@@ -439,7 +364,7 @@ namespace erl::geometry::rviz_plugin {
 
     void
     GridMapDisplay::unsubscribeToUpdateTopic() {
-        m_update_subscription_.reset();
+        m_update_subscriber_.reset();
     }
 
     void
@@ -448,7 +373,13 @@ namespace erl::geometry::rviz_plugin {
         Ogre::SceneBlendType scene_blending;
         bool depth_write;
 
-        rviz_rendering::MaterialManager::enableAlphaBlending(scene_blending, depth_write, alpha);
+        if (alpha >= 0.9998) {
+            scene_blending = Ogre::SBT_REPLACE;
+            depth_write = true;
+        } else {
+            scene_blending = Ogre::SBT_TRANSPARENT_ALPHA;
+            depth_write = false;
+        }
 
         for (const auto &swatch: m_swatches_) {
             swatch->updateAlpha(scene_blending, depth_write, alpha);
@@ -456,10 +387,10 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    GridMapDisplay::updateDrawUnder() const {
+    GridMapDisplay::updateDrawUnder() {
         bool draw_under = m_draw_under_property_->getValue().toBool();
 
-        if (m_alpha_property_->getFloat() >= rviz_rendering::unit_alpha_threshold) {
+        if (m_alpha_property_->getFloat() >= 0.9998) {
             for (const auto &swatch: m_swatches_) { swatch->setDepthWriteEnabled(!draw_under); }
         }
 
@@ -469,9 +400,7 @@ namespace erl::geometry::rviz_plugin {
 
     void
     GridMapDisplay::clear() {
-        if (isEnabled()) {
-            setStatus(rviz_common::properties::StatusProperty::Warn, "Message", "No map received");
-        }
+        if (isEnabled()) { setStatus(rviz::StatusProperty::Warn, "Message", "No map received"); }
 
         if (!m_loaded_) { return; }
 
@@ -484,9 +413,10 @@ namespace erl::geometry::rviz_plugin {
     }
 
     static bool
-    validateFloats(const erl_geometry_msgs::msg::GridMapMsg &msg) {
-        return rviz_common::validateFloats(msg.info.resolution) &&
-               rviz_common::validateFloats(msg.info.origin);
+    validateFloats(const erl_geometry_msgs::GridMapMsg &msg) {
+        return rviz::validateFloats(msg.info.resolution) &&
+               rviz::validateFloats(msg.info.origin.position) &&
+               rviz::validateFloats(msg.info.origin.orientation);
     }
 
     static bool
@@ -507,7 +437,7 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    GridMapDisplay::processMessage(erl_geometry_msgs::msg::GridMapMsg::ConstSharedPtr msg) {
+    GridMapDisplay::processMessage(const erl_geometry_msgs::GridMapMsg::ConstPtr &msg) {
         m_current_map_ = *msg;
         m_loaded_ = true;
         // updated via signal in case ros spinner is in a different thread
@@ -515,28 +445,15 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    GridMapDisplay::incomingUpdate(
-        const erl_geometry_msgs::msg::GridMapUpdateMsg::ConstSharedPtr update) {
+    GridMapDisplay::incomingUpdate(const erl_geometry_msgs::GridMapUpdateMsg::ConstPtr &update) {
         // Only update the map if we have gotten a full one first.
         if (!m_loaded_) { return; }
 
         ++m_update_messages_received_;
-        QString topic_str = QString::number(messages_received_) + " update messages received";
-        // Append topic subscription frequency if we can lock rviz_ros_node_.
-        std::shared_ptr<rviz_common::ros_integration::RosNodeAbstractionIface> node_interface =
-            rviz_ros_node_.lock();
-        if (node_interface != nullptr) {
-            const double duration =
-                (node_interface->get_raw_node()->now() - m_subscription_start_time_).seconds();
-            const double subscription_frequency =
-                static_cast<double>(messages_received_) / duration;
-            topic_str += " at " + QString::number(subscription_frequency, 'f', 1) + " hz.";
-        }
-        setStatus(rviz_common::properties::StatusProperty::Ok, "Topic", topic_str);
 
         if (!validateEncoding(update->encoding)) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Update",
                 "Update has invalid encoding: " + QString::number(update->encoding));
             return;
@@ -544,7 +461,7 @@ namespace erl::geometry::rviz_plugin {
 
         if (update->encoding != m_current_map_.encoding) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Update",
                 "Update has different encoding than the current map: " +
                     QString::number(update->encoding) +
@@ -554,14 +471,14 @@ namespace erl::geometry::rviz_plugin {
 
         if (updateDataOutOfBounds(update)) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Update",
                 "Update area outside of original map area.");
             return;
         }
 
         updateMapDataInMemory(update);
-        setStatus(rviz_common::properties::StatusProperty::Ok, "Update", "Update OK");
+        setStatus(rviz::StatusProperty::Ok, "Update", "Update OK");
 
         // updated via signal in case ros spinner is in a different thread
         Q_EMIT mapUpdated();
@@ -569,7 +486,7 @@ namespace erl::geometry::rviz_plugin {
 
     bool
     GridMapDisplay::updateDataOutOfBounds(
-        const erl_geometry_msgs::msg::GridMapUpdateMsg::ConstSharedPtr update) const {
+        const erl_geometry_msgs::GridMapUpdateMsg::ConstPtr &update) const {
         return update->x < 0 || update->y < 0 ||
                m_current_map_.info.width < update->x + update->width ||
                m_current_map_.info.height < update->y + update->height;
@@ -597,7 +514,7 @@ namespace erl::geometry::rviz_plugin {
 
     void
     GridMapDisplay::updateMapDataInMemory(
-        const erl_geometry_msgs::msg::GridMapUpdateMsg::ConstSharedPtr update) {
+        const erl_geometry_msgs::GridMapUpdateMsg::ConstPtr &update) {
         const std::size_t scalar_size = GetScalarSize(update->encoding);
         const std::size_t stride_update = update->width * scalar_size;
         const std::size_t stride_map = m_current_map_.info.width * scalar_size;
@@ -626,7 +543,7 @@ namespace erl::geometry::rviz_plugin {
         const size_t maximum_number_swatch_splittings = 4;
 
         for (size_t i = 0; i < maximum_number_swatch_splittings; ++i) {
-            RVIZ_COMMON_LOG_INFO_STREAM(
+            ROS_INFO_STREAM(
                 "Trying to create a map of size " << width << " x " << height << " using "
                                                   << number_swatches << " swatches");
             m_swatches_.clear();
@@ -648,7 +565,7 @@ namespace erl::geometry::rviz_plugin {
                 doubleSwatchNumber(swatch_width, swatch_height, number_swatches);
             }
         }
-        RVIZ_COMMON_LOG_ERROR_STREAM(
+        ROS_ERROR_STREAM(
             "Creating " << number_swatches
                         << "failed. This map is too large to be displayed by RViz.");
         m_swatches_.clear();
@@ -658,8 +575,8 @@ namespace erl::geometry::rviz_plugin {
     GridMapDisplay::doubleSwatchNumber(
         size_t &swatch_width,
         size_t &swatch_height,
-        int &number_swatches) const {
-        RVIZ_COMMON_LOG_ERROR_STREAM(
+        int &number_swatches) {
+        ROS_ERROR_STREAM(
             "Failed to create map using " << number_swatches
                                           << " swatches. "
                                              "At least one swatch seems to need too much memory");
@@ -727,7 +644,7 @@ namespace erl::geometry::rviz_plugin {
 
         if (!validateFloats(m_current_map_)) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Map",
                 "Message contained invalid floating point values (nans or infs)");
             return;
@@ -739,10 +656,7 @@ namespace erl::geometry::rviz_plugin {
         if (width * height == 0) {
             std::string message =
                 "Map is zero-sized (" + std::to_string(width) + "x" + std::to_string(height) + ")";
-            setStatus(
-                rviz_common::properties::StatusProperty::Error,
-                "Map",
-                QString::fromStdString(message));
+            setStatus(rviz::StatusProperty::Error, "Map", QString::fromStdString(message));
             return;
         }
 
@@ -753,16 +667,13 @@ namespace erl::geometry::rviz_plugin {
                 ", height = " + std::to_string(height) +
                 ", scalar size = " + std::to_string(scalar_size) +
                 ", data size = " + std::to_string(m_current_map_.data.size());
-            setStatus(
-                rviz_common::properties::StatusProperty::Error,
-                "Map",
-                QString::fromStdString(message));
+            setStatus(rviz::StatusProperty::Error, "Map", QString::fromStdString(message));
             return;
         }
 
-        setStatus(rviz_common::properties::StatusProperty::Ok, "Message", "Map received");
+        setStatus(rviz::StatusProperty::Ok, "Message", "Map received");
 
-        RVIZ_COMMON_LOG_DEBUG_STREAM(
+        ROS_DEBUG_STREAM(
             "Received a " << m_current_map_.info.width << " X " << m_current_map_.info.height
                           << " map @ " << m_current_map_.info.resolution << "m/pix\n");
 
@@ -807,7 +718,7 @@ namespace erl::geometry::rviz_plugin {
 
         updateSwatches();
 
-        setStatus(rviz_common::properties::StatusProperty::Ok, "Map", "Map OK");
+        setStatus(rviz::StatusProperty::Ok, "Map", "Map OK");
         updatePalette();
 
         m_resolution_property_->setValue(resolution);
@@ -817,9 +728,16 @@ namespace erl::geometry::rviz_plugin {
             QString::fromStdString(GetEncodingName(m_current_map_.encoding)));
 
         m_position_property_->setVector(
-            rviz_common::pointMsgToOgre(m_current_map_.info.origin.position));
+            Ogre::Vector3(
+                m_current_map_.info.origin.position.x,
+                m_current_map_.info.origin.position.y,
+                m_current_map_.info.origin.position.z));
         m_orientation_property_->setQuaternion(
-            rviz_common::quaternionMsgToOgre(m_current_map_.info.origin.orientation));
+            Ogre::Quaternion(
+                m_current_map_.info.origin.orientation.w,
+                m_current_map_.info.origin.orientation.x,
+                m_current_map_.info.origin.orientation.y,
+                m_current_map_.info.origin.orientation.z));
 
         transformMap();
 
@@ -841,7 +759,7 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    GridMapDisplay::updateSwatches() const {
+    GridMapDisplay::updateSwatches() {
         for (const auto &swatch: m_swatches_) {
             swatch->updateData(m_current_map_);
 
@@ -890,10 +808,10 @@ namespace erl::geometry::rviz_plugin {
     GridMapDisplay::transformMap() {
         if (!m_loaded_) { return; }
 
-        rclcpp::Time transform_time = context_->getClock()->now();
+        ros::Time transform_time = ros::Time::now();
 
         if (m_transform_timestamp_property_->getBool()) {
-            transform_time = rclcpp::Time(m_current_map_.header.stamp, RCL_ROS_TIME);
+            transform_time = m_current_map_.header.stamp;
         }
 
         Ogre::Vector3 position;
@@ -906,17 +824,22 @@ namespace erl::geometry::rviz_plugin {
                 orientation) &&
             !context_->getFrameManager()->transform(
                 m_frame_,
-                rclcpp::Time(0, 0, context_->getClock()->get_clock_type()),
+                ros::Time(0),
                 m_current_map_.info.origin,
                 position,
                 orientation)) {
-            setMissingTransformToFixedFrame(m_frame_);
+            setStatus(
+                rviz::StatusProperty::Error,
+                "Transform",
+                "No transform from [" + QString::fromStdString(m_frame_) + "] to [" + fixed_frame_ +
+                    "]");
             scene_node_->setVisible(false);
         } else {
-            setTransformOk();
+            setStatus(rviz::StatusProperty::Ok, "Transform", "Transform OK");
 
             scene_node_->setPosition(position);
             scene_node_->setOrientation(orientation);
+            scene_node_->setVisible(true);
         }
     }
 
@@ -943,7 +866,7 @@ namespace erl::geometry::rviz_plugin {
     void
     GridMapDisplay::onEnable() {
         MFDClass::onEnable();
-        setStatus(rviz_common::properties::StatusProperty::Warn, "Message", "No map received");
+        setStatus(rviz::StatusProperty::Warn, "Message", "No map received");
     }
 
     void
@@ -1009,7 +932,7 @@ namespace erl::geometry::rviz_plugin {
                     break;
                 default:
                     setStatus(
-                        rviz_common::properties::StatusProperty::Error,
+                        rviz::StatusProperty::Error,
                         "Map Value Range",
                         "Cannot determine min/max for unknown encoding.");
                     return;
@@ -1020,7 +943,7 @@ namespace erl::geometry::rviz_plugin {
 
         if (!std::isfinite(min_value) || !std::isfinite(max_value)) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Map Value Range",
                 "Map value range must be finite.");
             return;
@@ -1028,18 +951,18 @@ namespace erl::geometry::rviz_plugin {
 
         if (min_value >= max_value) {
             setStatus(
-                rviz_common::properties::StatusProperty::Error,
+                rviz::StatusProperty::Error,
                 "Map Value Range",
                 "Minimum map value must be smaller than maximum map value.");
             return;
         }
 
-        setStatus(rviz_common::properties::StatusProperty::Ok, "Map Value Range", "OK");
+        setStatus(rviz::StatusProperty::Ok, "Map Value Range", "OK");
 
         for (const auto &swatch: m_swatches_) { swatch->setValueRange(min_value, max_value); }
     }
 
 }  // namespace erl::geometry::rviz_plugin
 
-#include <pluginlib/class_list_macros.hpp>  // NOLINT
-PLUGINLIB_EXPORT_CLASS(erl::geometry::rviz_plugin::GridMapDisplay, rviz_common::Display)
+#include <pluginlib/class_list_macros.h>
+PLUGINLIB_EXPORT_CLASS(erl::geometry::rviz_plugin::GridMapDisplay, rviz::Display)
