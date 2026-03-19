@@ -62,12 +62,13 @@ public:
         m_pub_ = m_nh_.advertise<erl_geometry_msgs::GridMapMsg>(m_topic_, 10);
         m_timer_ = m_nh_.createTimer(
             ros::Duration(1.0 / m_publish_rate_),
-            &TestGridMapDisplayNode::Callback, this);
+            &TestGridMapDisplayNode::Callback,
+            this);
         ROS_INFO("TestGridMapDisplayNode initialized");
     }
 
     void
-    Callback(const ros::TimerEvent&) {
+    Callback(const ros::TimerEvent &) {
         erl_geometry_msgs::GridMapMsg msg;
         msg.header.stamp = ros::Time::now();
         msg.header.frame_id = "map";

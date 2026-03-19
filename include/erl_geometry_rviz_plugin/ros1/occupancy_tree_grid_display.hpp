@@ -30,20 +30,20 @@ namespace erl::geometry::rviz_plugin {
         bool m_new_points_received_ = false;
 
         // Ogre-rviz point clouds
-        std::vector<rviz::PointCloud*> m_clouds_{};
+        std::vector<rviz::PointCloud *> m_clouds_{};
         std::vector<double> m_box_size_{};
         std_msgs::Header m_header_;
 
         // Plugin properties
-        rviz::IntProperty* m_queue_size_property_ = nullptr;
-        rviz::RosTopicProperty* m_tree_topic_property_ = nullptr;
-        rviz::EnumProperty* m_tree_render_mode_property_ = nullptr;
-        rviz::EnumProperty* m_tree_color_mode_property_ = nullptr;
-        rviz::FloatProperty* m_tree_scale_property_ = nullptr;
-        rviz::IntProperty* m_tree_depth_property_ = nullptr;
-        rviz::FloatProperty* m_alpha_property_ = nullptr;
-        rviz::FloatProperty* m_max_height_property_ = nullptr;
-        rviz::FloatProperty* m_min_height_property_ = nullptr;
+        rviz::IntProperty *m_queue_size_property_ = nullptr;
+        rviz::RosTopicProperty *m_tree_topic_property_ = nullptr;
+        rviz::EnumProperty *m_tree_render_mode_property_ = nullptr;
+        rviz::EnumProperty *m_tree_color_mode_property_ = nullptr;
+        rviz::FloatProperty *m_tree_scale_property_ = nullptr;
+        rviz::IntProperty *m_tree_depth_property_ = nullptr;
+        rviz::FloatProperty *m_alpha_property_ = nullptr;
+        rviz::FloatProperty *m_max_height_property_ = nullptr;
+        rviz::FloatProperty *m_min_height_property_ = nullptr;
 
         u_int32_t m_queue_size_ = 0;
         uint32_t m_messages_received_ = 0;
@@ -95,17 +95,17 @@ namespace erl::geometry::rviz_plugin {
 
         template<typename Dtype>
         void
-        IncomingMessageCallbackForQuadtree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg);
+        IncomingMessageCallbackForQuadtree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg);
 
         template<typename Dtype>
         void
-        IncomingMessageCallbackForOctree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg);
+        IncomingMessageCallbackForOctree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg);
 
         void
-        IncomingMessageCallback(const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg);
+        IncomingMessageCallback(const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg);
 
         void
-        SetColor(double z_pos, double min_z, double max_z, rviz::PointCloud::Point& point);
+        SetColor(double z_pos, double min_z, double max_z, rviz::PointCloud::Point &point);
 
         void
         Clear();

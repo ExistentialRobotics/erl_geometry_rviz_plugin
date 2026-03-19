@@ -19,9 +19,9 @@ namespace erl::geometry::rviz_plugin {
         std::shared_ptr<message_filters::Subscriber<erl_geometry_msgs::OccupancyTreeMsg>> m_sub_;
 
         rviz::FloatProperty *m_tree_scale_property_ = nullptr;
-        rviz::IntProperty* m_tree_depth_property_;
-        rviz::FloatProperty* m_max_height_property_ = nullptr;
-        rviz::FloatProperty* m_min_height_property_ = nullptr;
+        rviz::IntProperty *m_tree_depth_property_;
+        rviz::FloatProperty *m_max_height_property_ = nullptr;
+        rviz::FloatProperty *m_min_height_property_ = nullptr;
 
         nav_msgs::OccupancyGrid::Ptr m_occupancy_map_ = nullptr;
         double m_tree_resolution_inv_;
@@ -52,14 +52,14 @@ namespace erl::geometry::rviz_plugin {
 
         template<typename Dtype>
         void
-        HandleMessageForQuadtree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg);
+        HandleMessageForQuadtree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg);
 
         template<typename Dtype>
         void
-        HandleMessageForOctree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg);
+        HandleMessageForOctree(const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg);
 
         void
-        HandleMessage(const erl_geometry_msgs::OccupancyTreeMsgConstPtr& msg);
+        HandleMessage(const erl_geometry_msgs::OccupancyTreeMsgConstPtr &msg);
 
         [[nodiscard]] OctreeKey
         CoordToKey(double x, double y, double z) const;
@@ -68,10 +68,10 @@ namespace erl::geometry::rviz_plugin {
         CoordToKey(double x, double y, double z, uint32_t depth) const;
 
         void
-        KeyToCoord(const OctreeKey& key, double& x, double& y, double& z) const;
+        KeyToCoord(const OctreeKey &key, double &x, double &y, double &z) const;
 
         void
-        KeyToCoord(const OctreeKey& key, uint32_t depth, double& x, double& y, double& z) const;
+        KeyToCoord(const OctreeKey &key, uint32_t depth, double &x, double &y, double &z) const;
 
         [[nodiscard]] QuadtreeKey
         CoordToKey(double x, double y) const;
@@ -80,10 +80,10 @@ namespace erl::geometry::rviz_plugin {
         CoordToKey(double x, double y, uint32_t depth) const;
 
         void
-        KeyToCoord(const QuadtreeKey& key, double& x, double& y) const;
+        KeyToCoord(const QuadtreeKey &key, double &x, double &y) const;
 
         void
-        KeyToCoord(const QuadtreeKey& key, uint32_t depth, double& x, double& y) const;
+        KeyToCoord(const QuadtreeKey &key, uint32_t depth, double &x, double &y) const;
     };
 
     // template<typename OcTreeType>

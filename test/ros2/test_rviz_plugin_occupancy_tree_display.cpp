@@ -136,7 +136,7 @@ private:
             long cnt_points = 0;
             for (long i = 0; i < ranges.rows(); ++i) {
                 for (long j = 0; j < ranges.cols(); ++j) {
-                    const Dtype& range = ranges(i, j);
+                    const Dtype &range = ranges(i, j);
                     if (!std::isfinite(range)) { continue; }
                     Vector3 point = sensor_origin + range * orientation * ray_directions(i, j);
                     points.col(cnt_points++) = point;
@@ -252,14 +252,14 @@ private:
             RCLCPP_WARN(this->get_logger(), "Trajectory index out of range");
             return;
         }
-        const auto& [rotation, translation, angles, ranges] = (*m_map_)[m_traj_index_++];
+        const auto &[rotation, translation, angles, ranges] = (*m_map_)[m_traj_index_++];
         Matrix2X points(2, ranges.size());
         {
             ERL_BLOCK_TIMER_MSG("Scan time");
             long cnt = 0;
             for (long k = 0; k < ranges.size(); ++k) {
-                const Dtype& angle = angles[k];
-                const Dtype& range = ranges[k];
+                const Dtype &angle = angles[k];
+                const Dtype &range = ranges[k];
                 if (!std::isfinite(range)) { continue; }
                 points.col(cnt) = translation.cast<Dtype>() +
                                   rotation.cast<Dtype>() *
@@ -361,7 +361,7 @@ public:
 };
 
 int
-main(int argc, char** argv) {
+main(int argc, char **argv) {
     rclcpp::init(argc, argv);
 
     auto entry_node = std::make_shared<EntryNode>();

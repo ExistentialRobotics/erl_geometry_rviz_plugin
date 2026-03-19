@@ -12,7 +12,7 @@ class Node {
     sensor_msgs::PointCloud2 m_msg_;
 
 public:
-    Node(ros::NodeHandle& nh)
+    Node(ros::NodeHandle &nh)
         : m_nh_(nh) {
         // Initialize the node
         std::string mesh_file = "data/bunny_z_up.ply";
@@ -58,7 +58,7 @@ public:
         m_msg_.row_step = m_msg_.point_step * m_msg_.width;
         m_msg_.data.resize(m_msg_.row_step);
         m_msg_.is_dense = true;
-        char* data_ptr = reinterpret_cast<char*>(m_msg_.data.data());
+        char *data_ptr = reinterpret_cast<char *>(m_msg_.data.data());
         for (size_t i = 0; i < mesh->vertices_.size(); ++i) {
             const Eigen::Vector3f vertex = mesh->vertices_[i].cast<float>();
             const Eigen::Vector3f normal = mesh->vertex_normals_[i].cast<float>();
@@ -75,7 +75,7 @@ public:
 
 private:
     void
-    Callback(const ros::TimerEvent& /* event */) {
+    Callback(const ros::TimerEvent & /* event */) {
         m_msg_.header.stamp = ros::Time::now();
         m_msg_.header.seq++;
         m_pub_.publish(m_msg_);
@@ -83,7 +83,7 @@ private:
 };
 
 int
-main(int argc, char** argv) {
+main(int argc, char **argv) {
     ros::init(argc, argv, "test_rviz_plugin_better_point_cloud2_display");
     ros::NodeHandle nh("~");
     Node node(nh);

@@ -62,7 +62,7 @@ public:
         m_msg_.row_step = m_msg_.point_step * m_msg_.width;
         m_msg_.data.resize(m_msg_.row_step);
         m_msg_.is_dense = true;
-        char* data_ptr = reinterpret_cast<char*>(m_msg_.data.data());
+        char *data_ptr = reinterpret_cast<char *>(m_msg_.data.data());
         for (size_t i = 0; i < mesh->vertices_.size(); ++i) {
             const Eigen::Vector3f vertex = mesh->vertices_[i].cast<float>();
             const Eigen::Vector3f normal = mesh->vertex_normals_[i].cast<float>();
@@ -90,7 +90,7 @@ private:
 };
 
 int
-main(int argc, char** argv) {
+main(int argc, char **argv) {
     rclcpp::init(argc, argv);
     auto node = std::make_shared<Node>();
     rclcpp::spin(node);

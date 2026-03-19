@@ -19,8 +19,8 @@
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
-#include <QColor>
 #include <memory>
+#include <QColor>
 
 namespace erl::geometry::rviz_plugin {
     class RVIZ_DEFAULT_PLUGINS_PUBLIC BetterPointCloud2Display

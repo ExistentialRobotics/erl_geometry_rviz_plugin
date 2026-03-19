@@ -38,12 +38,11 @@
 
 #ifndef Q_MOC_RUN
 
+    #include <message_filters/subscriber.h>
     #include <OgreMaterial.h>
     #include <OgreSharedPtr.h>
     #include <OgreTexture.h>
     #include <OgreVector3.h>
-
-    #include <message_filters/subscriber.h>
     #include <ros/ros.h>
 
 #endif  // Q_MOC_RUN

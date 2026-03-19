@@ -34,18 +34,18 @@ namespace erl::geometry::rviz_plugin {
         bool m_new_points_received_ = false;
 
         // Ogre-rviz point clouds
-        std::vector<rviz_rendering::PointCloud*> m_clouds_{};
+        std::vector<rviz_rendering::PointCloud *> m_clouds_{};
         std::vector<double> m_box_size_{};
         std_msgs::msg::Header m_header_;
 
         // Plugin properties
-        rviz_common::properties::EnumProperty* m_tree_render_mode_property_ = nullptr;
-        rviz_common::properties::EnumProperty* m_tree_color_mode_property_ = nullptr;
-        rviz_common::properties::FloatProperty* m_tree_scale_property_ = nullptr;
-        rviz_common::properties::IntProperty* m_tree_depth_property_ = nullptr;
-        rviz_common::properties::FloatProperty* m_alpha_property_ = nullptr;
-        rviz_common::properties::FloatProperty* m_max_height_property_ = nullptr;
-        rviz_common::properties::FloatProperty* m_min_height_property_ = nullptr;
+        rviz_common::properties::EnumProperty *m_tree_render_mode_property_ = nullptr;
+        rviz_common::properties::EnumProperty *m_tree_color_mode_property_ = nullptr;
+        rviz_common::properties::FloatProperty *m_tree_scale_property_ = nullptr;
+        rviz_common::properties::IntProperty *m_tree_depth_property_ = nullptr;
+        rviz_common::properties::FloatProperty *m_alpha_property_ = nullptr;
+        rviz_common::properties::FloatProperty *m_max_height_property_ = nullptr;
+        rviz_common::properties::FloatProperty *m_min_height_property_ = nullptr;
 
         float m_color_factor_;
         bool m_is_2d_ = false;
@@ -89,19 +89,19 @@ namespace erl::geometry::rviz_plugin {
         template<typename Dtype>
         void
         ProcessMessageForQuadtree(
-            const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr& msg);
+            const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr &msg);
 
         template<typename Dtype>
         void
         ProcessMessageForOctree(
-            const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr& msg);
+            const erl_geometry_msgs::msg::OccupancyTreeMsg::ConstSharedPtr &msg);
 
         void
         SetColor(
             double z_pos,
             double min_z,
             double max_z,
-            rviz_rendering::PointCloud::Point& point);
+            rviz_rendering::PointCloud::Point &point);
 
         void
         Clear();

@@ -41,7 +41,7 @@ class TestOccupancyTreeGridDisplayNode3D {
     bool m_publish_binary_msg_ = false;
 
 public:
-    TestOccupancyTreeGridDisplayNode3D(ros::NodeHandle& nh)
+    TestOccupancyTreeGridDisplayNode3D(ros::NodeHandle &nh)
         : m_nh_(nh) {
 
         m_nh_.param("publish_binary_msg", m_publish_binary_msg_, false);
@@ -108,7 +108,7 @@ public:
 
 private:
     void
-    CallbackTimer(const ros::TimerEvent& /* event */) {
+    CallbackTimer(const ros::TimerEvent & /* event */) {
         if (m_traj_index_ >= static_cast<int>(m_path_3d_.size())) {
             ROS_WARN("Trajectory index out of range");
             return;
@@ -130,7 +130,7 @@ private:
             long cnt_points = 0;
             for (long i = 0; i < ranges.rows(); ++i) {
                 for (long j = 0; j < ranges.cols(); ++j) {
-                    const Dtype& range = ranges(i, j);
+                    const Dtype &range = ranges(i, j);
                     if (!std::isfinite(range)) { continue; }
                     Vector3 point = sensor_origin + range * orientation * ray_directions(i, j);
                     points.col(cnt_points++) = point;
@@ -193,7 +193,7 @@ class TestOccupancyTreeGridDisplayNode2D {
     bool m_publish_binary_msg_ = false;
 
 public:
-    TestOccupancyTreeGridDisplayNode2D(ros::NodeHandle& nh)
+    TestOccupancyTreeGridDisplayNode2D(ros::NodeHandle &nh)
         : m_nh_(nh) {
 
         m_nh_.param("publish_binary_msg", m_publish_binary_msg_, false);
@@ -251,19 +251,19 @@ public:
 
 private:
     void
-    CallbackTimer(const ros::TimerEvent& /* event */) {
+    CallbackTimer(const ros::TimerEvent & /* event */) {
         if (m_traj_index_ >= m_map_->Size()) {
             ROS_WARN("Trajectory index out of range");
             return;
         }
-        const auto& [rotation, translation, angles, ranges] = (*m_map_)[m_traj_index_++];
+        const auto &[rotation, translation, angles, ranges] = (*m_map_)[m_traj_index_++];
         Matrix2X points(2, ranges.size());
         {
             ERL_BLOCK_TIMER_MSG("Scan time");
             long cnt = 0;
             for (long k = 0; k < ranges.size(); ++k) {
-                const Dtype& angle = angles[k];
-                const Dtype& range = ranges[k];
+                const Dtype &angle = angles[k];
+                const Dtype &range = ranges[k];
                 if (!std::isfinite(range)) { continue; }
                 points.col(cnt) = translation.cast<Dtype>() +
                                   rotation.cast<Dtype>() *
@@ -312,7 +312,7 @@ private:
 struct EntryNode {
     std::shared_ptr<void> m_node_ = nullptr;
 
-    EntryNode(ros::NodeHandle& nh) {
+    EntryNode(ros::NodeHandle &nh) {
         bool is_double = false;
         nh.param("is_double", is_double, false);
         bool is_3d = true;
@@ -334,7 +334,7 @@ struct EntryNode {
 };
 
 int
-main(int argc, char** argv) {
+main(int argc, char **argv) {
     ros::init(argc, argv, "test_occupancy_tree_grid_display_node");
     ros::NodeHandle nh("~");
     EntryNode node(nh);
