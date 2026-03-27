@@ -21,4 +21,10 @@
             types, as a colored 2D map.
         </description>
     </class>
+    <class name="erl_geometry/MeshDisplay" type="erl::geometry::rviz_plugin::MeshDisplay" base_class_type="rviz::Display">
+        <description>
+            Display a triangle mesh from erl_geometry_msgs::MeshMsg topic or a .ply file.
+            Supports per-vertex/per-face colors, configurable transparency, and computed normals.
+        </description>
+    </class>
 </library>

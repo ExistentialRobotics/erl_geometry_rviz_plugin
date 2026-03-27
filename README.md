@@ -8,16 +8,27 @@
 
 A collection of custom RViz plugins for visualizing geometry data structures and enhanced point cloud displays. This package provides specialized visualization tools for occupancy trees, enhanced point clouds with normal vectors, and other geometric data.
 
-|                                                         |                                                        |
-| ------------------------------------------------------- | ------------------------------------------------------ |
-| ![](launch/assets/test_better_point_cloud2_display.png) | ![](launch/assets/test_grid_map_display.png)           |
-| ![](launch/assets/test_occupancy_tree_grid_display.png) | ![](launch/assets/test_occupancy_tree_map_display.png) |
+<table>
+  <tr>
+    <td><img src="launch/assets/test_better_point_cloud2_display.png" width="400"></td>
+    <td><img src="launch/assets/test_grid_map_display.png" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="launch/assets/test_occupancy_tree_grid_display.png" width="400"></td>
+    <td><img src="launch/assets/test_occupancy_tree_map_display.png" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="launch/assets/test_mesh_display.png" width="400"></td>
+    <td></td>
+  </tr>
+</table>
 
 ## Features
 
 - **ROS Support**: Compatible with both ROS1 and ROS2
 - **Enhanced Point Cloud Visualization**: Display point clouds with normal vectors and improved performance
 - **Occupancy Tree Visualization**: Visualize quadtrees and octrees as grids or occupancy maps
+- **Mesh Visualization**: Display triangle meshes with per-vertex/per-face colors, transparency, and backface culling
 - **Custom Geometry Message Support**: Specialized displays for [erl_geometry_msgs](https://github.com/ExistentialRobotics/erl_geometry_msgs)
 
 ## Available RViz Displays
@@ -69,6 +80,18 @@ Converts occupancy trees into standard occupancy grid maps for visualization.
 
 **Message Type:** `erl_geometry_msgs/OccupancyTreeMsg`
 
+### Mesh Display
+Visualizes triangle meshes with optional per-vertex or per-face colors. Also supports loading meshes directly from PLY files.
+
+**Features:**
+- Display triangle meshes from topic or PLY file (ASCII and binary little-endian)
+- Per-vertex and per-face color support
+- Configurable default color and transparency
+- Automatic face normal computation for lighting
+- Backface culling toggle
+
+**Message Type:** `erl_geometry_msgs/MeshMsg`
+
 ## Getting Started
 
 ### Create Workspace
@@ -79,7 +102,7 @@ vcs import --input https://raw.githubusercontent.com/ExistentialRobotics/erl_geo
 ```
 ### Prerequisites
 
-- ROS1 Noetic or ROS2 Humble
+- ROS1 Noetic or ROS2 Humble/Jazzy
 - C++17 compatible compiler
 - CMake 3.24 or higher
 
@@ -165,6 +188,7 @@ First, remember to source your workspace.
    - `erl_geometry_rviz_plugin/OccupancyTreeMap`
    - `erl_geometry_rviz_plugin/BetterPointCloud2`
    - `erl_geometry_rviz_plugin/GridMapDisplay`
+   - `erl_geometry_rviz_plugin/MeshDisplay`
 
 </details>
 
@@ -179,6 +203,7 @@ First, remember to source your workspace.
    - `erl_geometry_rviz_plugin/OccupancyTreeMap`
    - `erl_geometry_rviz_plugin/BetterPointCloud2`
    - `erl_geometry_rviz_plugin/GridMapDisplay`
+   - `erl_geometry_rviz_plugin/MeshDisplay`
 
 </details>
 
@@ -219,6 +244,24 @@ roslaunch erl_geometry_rviz_plugin test_rviz_plugin_occupancy_tree_display.launc
 
 ```bash
 ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_occupancy_tree_display_launch.py
+```
+</details>
+
+#### Mesh Display Test
+
+<details>
+<summary><b>ROS1</b></summary>
+
+```bash
+roslaunch erl_geometry_rviz_plugin test_rviz_plugin_mesh_display.launch
+```
+</details>
+
+<details>
+<summary><b>ROS2</b></summary>
+
+```bash
+ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_mesh_display_launch.py
 ```
 </details>
 

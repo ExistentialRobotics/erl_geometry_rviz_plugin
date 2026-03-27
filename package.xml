@@ -20,6 +20,7 @@
     <depend>nav_msgs</depend>
     <depend>geometry_msgs</depend>
     <depend>sensor_msgs</depend>
+    <depend>shape_msgs</depend>
     <depend>tf2_ros</depend>
 
     <!-- rviz plugin dependencies -->

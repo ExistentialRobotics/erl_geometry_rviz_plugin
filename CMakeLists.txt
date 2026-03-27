@@ -13,10 +13,10 @@ endif()
 erl_project_setup(ERL_PACKAGES erl_common erl_geometry)
 include(cmake/erl_geometry_rviz_plugin_dependencies.cmake)
 erl_setup_ros(
-    CATKIN_COMPONENTS rviz erl_geometry_msgs
-    CATKIN_DEPENDS rviz erl_geometry_msgs
+    CATKIN_COMPONENTS rviz erl_geometry_msgs shape_msgs
+    CATKIN_DEPENDS rviz erl_geometry_msgs shape_msgs
     LIBRARIES ${PROJECT_NAME}
-    ROS2_COMPONENTS pluginlib rviz_common rviz_default_plugins erl_geometry_msgs
+    ROS2_COMPONENTS pluginlib rviz_common rviz_rendering rviz_default_plugins erl_geometry_msgs shape_msgs
     CFG_EXTRAS erl_geometry_rviz_plugin_dependencies.cmake)
 erl_add_ros_src()
 erl_add_tests(LIBRARIES Open3D::Open3D)
