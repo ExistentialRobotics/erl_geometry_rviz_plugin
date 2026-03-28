@@ -1,6 +1,6 @@
+#include <erl_geometry_msgs/MeshMsg.h>
 #include <open3d/io/TriangleMeshIO.h>
 #include <ros/ros.h>
-#include <erl_geometry_msgs/MeshMsg.h>
 
 #include <filesystem>
 
@@ -12,7 +12,7 @@ class Node {
     erl_geometry_msgs::MeshMsg m_msg_;
 
 public:
-    Node(ros::NodeHandle& nh)
+    Node(ros::NodeHandle &nh)
         : m_nh_(nh) {
         std::string mesh_file = "data/bunny_z_up.ply";
         if (!m_nh_.getParam("mesh_file", mesh_file)) {
@@ -79,14 +79,14 @@ public:
 
 private:
     void
-    Callback(const ros::TimerEvent& /* event */) {
+    Callback(const ros::TimerEvent & /* event */) {
         m_msg_.header.stamp = ros::Time::now();
         m_pub_.publish(m_msg_);
     }
 };
 
 int
-main(int argc, char** argv) {
+main(int argc, char **argv) {
     ros::init(argc, argv, "test_rviz_plugin_mesh_display");
     ros::NodeHandle nh("~");
     Node node(nh);

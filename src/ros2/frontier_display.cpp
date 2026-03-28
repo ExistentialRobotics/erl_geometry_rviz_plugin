@@ -218,8 +218,8 @@ namespace erl::geometry::rviz_plugin {
         m_material_->getTechnique(0)->getPass(0)->setDepthWriteEnabled(alpha >= 1.0f);
 
         bool is_3d = (m_dim_ == 3);
-        auto render_op = is_3d ? Ogre::RenderOperation::OT_TRIANGLE_LIST
-                               : Ogre::RenderOperation::OT_LINE_LIST;
+        auto render_op =
+            is_3d ? Ogre::RenderOperation::OT_TRIANGLE_LIST : Ogre::RenderOperation::OT_LINE_LIST;
 
         if (!is_3d) {
             float line_width = m_line_width_property_->getFloat();

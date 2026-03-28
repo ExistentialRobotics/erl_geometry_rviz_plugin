@@ -33,10 +33,14 @@ BuildCircleTree(const Dtype resolution = 0.04) {
     }
 
     tree->InsertPointCloud(
-        points, sensor_origin,
-        /*min_range=*/0.0, /*max_range=*/-1.0,
-        /*with_count=*/false, /*parallel=*/false,
-        /*lazy_eval=*/false, /*discrete=*/false);
+        points,
+        sensor_origin,
+        /*min_range=*/0.0,
+        /*max_range=*/-1.0,
+        /*with_count=*/false,
+        /*parallel=*/false,
+        /*lazy_eval=*/false,
+        /*discrete=*/false);
 
     return tree;
 }
@@ -57,17 +61,19 @@ BuildSphereTree(const Dtype resolution = 0.1) {
         constexpr Dtype radius = 1.0;
         const Dtype theta = std::acos(1.0 - 2.0 * (static_cast<Dtype>(i) + 0.5) / n);
         const Dtype phi = 2.0 * M_PI * static_cast<Dtype>(i) / golden_ratio;
-        points.col(i) <<
-            radius * std::sin(theta) * std::cos(phi),
-            radius * std::sin(theta) * std::sin(phi),
-            radius * std::cos(theta);
+        points.col(i) << radius * std::sin(theta) * std::cos(phi),
+            radius * std::sin(theta) * std::sin(phi), radius * std::cos(theta);
     }
 
     tree->InsertPointCloud(
-        points, sensor_origin,
-        /*min_range=*/0.0, /*max_range=*/-1.0,
-        /*with_count=*/false, /*parallel=*/false,
-        /*lazy_eval=*/false, /*discrete=*/false);
+        points,
+        sensor_origin,
+        /*min_range=*/0.0,
+        /*max_range=*/-1.0,
+        /*with_count=*/false,
+        /*parallel=*/false,
+        /*lazy_eval=*/false,
+        /*discrete=*/false);
 
     return tree;
 }
@@ -139,7 +145,7 @@ OctreeFrontiersToMsg(
         }
 
         f_msg.indices.reserve(frontier.faces.size() * 3);
-        for (const auto &face : frontier.faces) {
+        for (const auto &face: frontier.faces) {
             f_msg.indices.push_back(static_cast<uint32_t>(face[0]));
             f_msg.indices.push_back(static_cast<uint32_t>(face[1]));
             f_msg.indices.push_back(static_cast<uint32_t>(face[2]));
@@ -176,24 +182,22 @@ public:
         m_is_3d_ = this->get_parameter("is_3d").as_bool();
 
         m_pub_frontier_ = this->create_publisher<erl_geometry_msgs::msg::FrontierArray>(
-            "frontiers", rclcpp::QoS(1).transient_local());
+            "frontiers",
+            rclcpp::QoS(1).transient_local());
         m_pub_tree_ = this->create_publisher<erl_geometry_msgs::msg::OccupancyTreeMsg>(
-            "tree", rclcpp::QoS(1).transient_local());
+            "tree",
+            rclcpp::QoS(1).transient_local());
 
         if (m_is_3d_) {
             RCLCPP_INFO(this->get_logger(), "Building sphere octree (3D)...");
             m_octree_ = BuildSphereTree(0.1);
             m_frontiers_3d_ = m_octree_->ExtractFrontiers();
-            RCLCPP_INFO(
-                this->get_logger(),
-                "Extracted %zu 3D frontiers", m_frontiers_3d_.size());
+            RCLCPP_INFO(this->get_logger(), "Extracted %zu 3D frontiers", m_frontiers_3d_.size());
         } else {
             RCLCPP_INFO(this->get_logger(), "Building circle quadtree (2D)...");
             m_quadtree_ = BuildCircleTree(0.04);
             m_frontiers_2d_ = m_quadtree_->ExtractFrontiers();
-            RCLCPP_INFO(
-                this->get_logger(),
-                "Extracted %zu 2D frontiers", m_frontiers_2d_.size());
+            RCLCPP_INFO(this->get_logger(), "Extracted %zu 2D frontiers", m_frontiers_2d_.size());
         }
 
         m_timer_ = this->create_wall_timer(
@@ -216,11 +220,9 @@ private:
             erl_geometry_msgs::msg::OccupancyTreeMsg tree_msg;
             bool ok = false;
             if (m_is_3d_) {
-                ok = erl::geometry::SaveToOccupancyTreeMsg<Dtype>(
-                    m_octree_, 1.0, true, tree_msg);
+                ok = erl::geometry::SaveToOccupancyTreeMsg<Dtype>(m_octree_, 1.0, true, tree_msg);
             } else {
-                ok = erl::geometry::SaveToOccupancyTreeMsg<Dtype>(
-                    m_quadtree_, 1.0, true, tree_msg);
+                ok = erl::geometry::SaveToOccupancyTreeMsg<Dtype>(m_quadtree_, 1.0, true, tree_msg);
             }
             if (ok) {
                 tree_msg.header.frame_id = frame_id;
@@ -233,11 +235,11 @@ private:
         {
             erl_geometry_msgs::msg::FrontierArray frontier_msg;
             if (m_is_3d_) {
-                frontier_msg = OctreeFrontiersToMsg(
-                    m_frontiers_3d_, 0.1, frame_id, *this->get_clock());
+                frontier_msg =
+                    OctreeFrontiersToMsg(m_frontiers_3d_, 0.1, frame_id, *this->get_clock());
             } else {
-                frontier_msg = QuadtreeFrontiersToMsg(
-                    m_frontiers_2d_, 0.04, frame_id, *this->get_clock());
+                frontier_msg =
+                    QuadtreeFrontiersToMsg(m_frontiers_2d_, 0.04, frame_id, *this->get_clock());
             }
             m_pub_frontier_->publish(frontier_msg);
         }

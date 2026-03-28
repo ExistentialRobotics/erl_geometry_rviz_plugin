@@ -1,15 +1,15 @@
 #pragma once
 #ifndef Q_MOC_RUN
+    #include <erl_geometry_msgs/msg/frontier_array.hpp>
     #include <OgreManualObject.h>
     #include <OgreSceneManager.h>
     #include <OgreSceneNode.h>
-    #include <erl_geometry_msgs/msg/frontier_array.hpp>
     #include <rclcpp/rclcpp.hpp>
-    #include <rviz_common/ros_topic_display.hpp>
     #include <rviz_common/properties/bool_property.hpp>
     #include <rviz_common/properties/color_property.hpp>
     #include <rviz_common/properties/enum_property.hpp>
     #include <rviz_common/properties/float_property.hpp>
+    #include <rviz_common/ros_topic_display.hpp>
     #include <rviz_default_plugins/visibility_control.hpp>
 #endif
 

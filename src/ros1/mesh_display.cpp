@@ -9,16 +9,14 @@
 #include <rviz/properties/status_property.h>
 #include <rviz/visualization_manager.h>
 
-#include <QObject>
 #include <fstream>
+#include <QObject>
 #include <sstream>
 
 namespace erl::geometry::rviz_plugin {
 
     MeshDisplay::MeshDisplay()
-        : rviz::Display(),
-          m_queue_size_(5),
-          m_messages_received_(0) {
+        : rviz::Display(), m_queue_size_(5), m_messages_received_(0) {
 
         m_queue_size_property_ = new rviz::IntProperty(
             "Queue Size",
@@ -50,12 +48,8 @@ namespace erl::geometry::rviz_plugin {
             this,
             SLOT(UpdateDefaultColor()));
 
-        m_alpha_property_ = new rviz::FloatProperty(
-            "Alpha",
-            1.0,
-            "Mesh transparency.",
-            this,
-            SLOT(UpdateAlpha()));
+        m_alpha_property_ =
+            new rviz::FloatProperty("Alpha", 1.0, "Mesh transparency.", this, SLOT(UpdateAlpha()));
         m_alpha_property_->setMin(0.0);
         m_alpha_property_->setMax(1.0);
 
@@ -93,7 +87,8 @@ namespace erl::geometry::rviz_plugin {
         static int material_counter = 0;
         std::string material_name = "MeshDisplayMaterial_" + std::to_string(material_counter++);
         m_material_ = Ogre::MaterialManager::getSingleton().create(
-            material_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+            material_name,
+            Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
         m_material_->setReceiveShadows(false);
         m_material_->getTechnique(0)->setLightingEnabled(true);
         m_material_->getTechnique(0)->getPass(0)->setVertexColourTracking(
@@ -194,14 +189,15 @@ namespace erl::geometry::rviz_plugin {
 
         try {
             Unsubscribe();
-            const std::string& topic = m_topic_property_->getStdString();
+            const std::string &topic = m_topic_property_->getStdString();
             if (!topic.empty()) {
-                m_sub_ = std::make_shared<message_filters::Subscriber<erl_geometry_msgs::MeshMsg>>();
+                m_sub_ =
+                    std::make_shared<message_filters::Subscriber<erl_geometry_msgs::MeshMsg>>();
                 m_sub_->subscribe(threaded_nh_, topic, m_queue_size_);
                 m_sub_->registerCallback(
                     boost::bind(&MeshDisplay::IncomingMessageCallback, this, _1));
             }
-        } catch (ros::Exception& e) {
+        } catch (ros::Exception &e) {
             setStatus(
                 rviz::StatusProperty::Error,
                 "Topic",
@@ -213,7 +209,7 @@ namespace erl::geometry::rviz_plugin {
     MeshDisplay::Unsubscribe() {
         try {
             m_sub_.reset();
-        } catch (ros::Exception& e) {
+        } catch (ros::Exception &e) {
             setStatus(
                 rviz::StatusProperty::Error,
                 "Topic",
@@ -222,7 +218,7 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    MeshDisplay::IncomingMessageCallback(const erl_geometry_msgs::MeshMsg::ConstPtr& msg) {
+    MeshDisplay::IncomingMessageCallback(const erl_geometry_msgs::MeshMsg::ConstPtr &msg) {
         ++m_messages_received_;
         setStatus(
             rviz::StatusProperty::Ok,
@@ -232,7 +228,7 @@ namespace erl::geometry::rviz_plugin {
         std::lock_guard<std::mutex> lock(m_mutex_);
 
         m_header_ = msg->header;
-        const auto& mesh = msg->mesh;
+        const auto &mesh = msg->mesh;
 
         // extract vertices
         m_vertices_.resize(mesh.vertices.size());
@@ -294,7 +290,7 @@ namespace erl::geometry::rviz_plugin {
     }
 
     void
-    MeshDisplay::LoadPlyFile(const std::string& file_path) {
+    MeshDisplay::LoadPlyFile(const std::string &file_path) {
         std::ifstream file(file_path, std::ios::binary);
         if (!file.is_open()) {
             setStatusStd(rviz::StatusProperty::Error, "PLY File", "Cannot open file: " + file_path);
@@ -316,6 +312,7 @@ namespace erl::geometry::rviz_plugin {
             std::string name;
             std::string type;
         };
+
         std::vector<VertexProp> vertex_props;
 
         std::getline(file, line);
@@ -377,18 +374,24 @@ namespace erl::geometry::rviz_plugin {
         int x_idx = -1, y_idx = -1, z_idx = -1;
         int r_idx = -1, g_idx = -1, b_idx = -1, a_idx = -1;
         for (int i = 0; i < static_cast<int>(vertex_props.size()); ++i) {
-            const auto& name = vertex_props[i].name;
+            const auto &name = vertex_props[i].name;
             if (name == "x") x_idx = i;
-            else if (name == "y") y_idx = i;
-            else if (name == "z") z_idx = i;
-            else if (name == "red" || name == "r") r_idx = i;
-            else if (name == "green" || name == "g") g_idx = i;
-            else if (name == "blue" || name == "b") b_idx = i;
-            else if (name == "alpha" || name == "a") a_idx = i;
+            else if (name == "y")
+                y_idx = i;
+            else if (name == "z")
+                z_idx = i;
+            else if (name == "red" || name == "r")
+                r_idx = i;
+            else if (name == "green" || name == "g")
+                g_idx = i;
+            else if (name == "blue" || name == "b")
+                b_idx = i;
+            else if (name == "alpha" || name == "a")
+                a_idx = i;
         }
 
         // helper to get byte size of a PLY type
-        auto ply_type_size = [](const std::string& t) -> int {
+        auto ply_type_size = [](const std::string &t) -> int {
             if (t == "char" || t == "int8" || t == "uchar" || t == "uint8") return 1;
             if (t == "short" || t == "int16" || t == "ushort" || t == "uint16") return 2;
             if (t == "int" || t == "int32" || t == "uint" || t == "uint32" || t == "float" ||
@@ -412,8 +415,8 @@ namespace erl::geometry::rviz_plugin {
                 file.read(vertex_buf.data(), vertex_stride);
 
                 auto read_float = [&](int idx) -> float {
-                    const auto& type = vertex_props[idx].type;
-                    const char* ptr = vertex_buf.data() + prop_offsets[idx];
+                    const auto &type = vertex_props[idx].type;
+                    const char *ptr = vertex_buf.data() + prop_offsets[idx];
                     if (type == "float" || type == "float32") {
                         float val;
                         std::memcpy(&val, ptr, sizeof(float));
@@ -431,8 +434,8 @@ namespace erl::geometry::rviz_plugin {
                     return static_cast<uint8_t>(vertex_buf[prop_offsets[idx]]);
                 };
 
-                m_vertices_[v] = Ogre::Vector3(
-                    read_float(x_idx), read_float(y_idx), read_float(z_idx));
+                m_vertices_[v] =
+                    Ogre::Vector3(read_float(x_idx), read_float(y_idx), read_float(z_idx));
 
                 if (has_colors && r_idx >= 0 && g_idx >= 0 && b_idx >= 0) {
                     float r = static_cast<float>(read_uchar(r_idx)) / 255.0f;
@@ -450,17 +453,17 @@ namespace erl::geometry::rviz_plugin {
             m_indices_.reserve(static_cast<size_t>(num_faces) * 3);
             for (int f = 0; f < num_faces; ++f) {
                 uint8_t count;
-                file.read(reinterpret_cast<char*>(&count), 1);
+                file.read(reinterpret_cast<char *>(&count), 1);
                 std::vector<uint32_t> face_indices(count);
                 if (count <= 4) {
                     // try reading as int32
                     file.read(
-                        reinterpret_cast<char*>(face_indices.data()),
+                        reinterpret_cast<char *>(face_indices.data()),
                         static_cast<std::streamsize>(count * sizeof(uint32_t)));
                 } else {
                     for (uint8_t i = 0; i < count; ++i) {
                         uint32_t idx;
-                        file.read(reinterpret_cast<char*>(&idx), sizeof(uint32_t));
+                        file.read(reinterpret_cast<char *>(&idx), sizeof(uint32_t));
                         face_indices[i] = idx;
                     }
                 }
@@ -486,9 +489,8 @@ namespace erl::geometry::rviz_plugin {
                     float r = static_cast<float>(values[r_idx]) / 255.0f;
                     float g = static_cast<float>(values[g_idx]) / 255.0f;
                     float b = static_cast<float>(values[b_idx]) / 255.0f;
-                    float a = (has_alpha && a_idx >= 0)
-                                  ? static_cast<float>(values[a_idx]) / 255.0f
-                                  : 1.0f;
+                    float a = (has_alpha && a_idx >= 0) ? static_cast<float>(values[a_idx]) / 255.0f
+                                                        : 1.0f;
                     m_colors_[v] = Ogre::ColourValue(r, g, b, a);
                 }
             }
@@ -520,8 +522,8 @@ namespace erl::geometry::rviz_plugin {
         setStatusStd(
             rviz::StatusProperty::Ok,
             "PLY File",
-            "Loaded " + std::to_string(num_vertices) + " vertices, " +
-                std::to_string(num_faces) + " faces from " + file_path);
+            "Loaded " + std::to_string(num_vertices) + " vertices, " + std::to_string(num_faces) +
+                " faces from " + file_path);
     }
 
     void
@@ -534,7 +536,10 @@ namespace erl::geometry::rviz_plugin {
         float alpha = m_alpha_property_->getFloat();
         QColor default_color = m_default_color_property_->getColor();
         Ogre::ColourValue default_ogre_color(
-            default_color.redF(), default_color.greenF(), default_color.blueF(), alpha);
+            default_color.redF(),
+            default_color.greenF(),
+            default_color.blueF(),
+            alpha);
 
         bool has_per_vertex_normals = m_normals_.size() == m_vertices_.size();
         bool has_per_vertex_colors = m_colors_.size() == m_vertices_.size();
@@ -557,9 +562,7 @@ namespace erl::geometry::rviz_plugin {
             m_manual_object_->colour(color);
         }
 
-        for (size_t i = 0; i < m_indices_.size(); ++i) {
-            m_manual_object_->index(m_indices_[i]);
-        }
+        for (size_t i = 0; i < m_indices_.size(); ++i) { m_manual_object_->index(m_indices_[i]); }
 
         m_manual_object_->end();
     }
@@ -572,8 +575,7 @@ namespace erl::geometry::rviz_plugin {
             uint32_t i0 = m_indices_[i];
             uint32_t i1 = m_indices_[i + 1];
             uint32_t i2 = m_indices_[i + 2];
-            if (i0 >= m_vertices_.size() || i1 >= m_vertices_.size() ||
-                i2 >= m_vertices_.size()) {
+            if (i0 >= m_vertices_.size() || i1 >= m_vertices_.size() || i2 >= m_vertices_.size()) {
                 continue;
             }
 
@@ -588,7 +590,7 @@ namespace erl::geometry::rviz_plugin {
             m_normals_[i2] += face_normal;
         }
 
-        for (auto& n : m_normals_) {
+        for (auto &n: m_normals_) {
             float len = n.length();
             if (len > 1e-6f) { n /= len; }
         }

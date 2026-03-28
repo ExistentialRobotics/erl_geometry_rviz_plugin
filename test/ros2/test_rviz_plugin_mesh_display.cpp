@@ -1,6 +1,6 @@
+#include <erl_geometry_msgs/msg/mesh_msg.hpp>
 #include <open3d/io/TriangleMeshIO.h>
 #include <rclcpp/rclcpp.hpp>
-#include <erl_geometry_msgs/msg/mesh_msg.hpp>
 
 #include <filesystem>
 
@@ -59,9 +59,8 @@ public:
 
         m_msg_.header.stamp = this->now();
         m_pub_->publish(m_msg_);
-        m_timer_ = this->create_wall_timer(
-            std::chrono::seconds(1),
-            std::bind(&Node::Callback, this));
+        m_timer_ =
+            this->create_wall_timer(std::chrono::seconds(1), std::bind(&Node::Callback, this));
         RCLCPP_INFO(
             this->get_logger(),
             "Published mesh with %zu vertices and %zu triangles",
@@ -78,7 +77,7 @@ private:
 };
 
 int
-main(int argc, char** argv) {
+main(int argc, char **argv) {
     rclcpp::init(argc, argv);
     auto node = std::make_shared<Node>();
     rclcpp::spin(node);
