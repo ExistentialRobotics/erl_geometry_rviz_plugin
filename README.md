@@ -19,7 +19,7 @@ A collection of custom RViz plugins for visualizing geometry data structures and
   </tr>
   <tr>
     <td><img src="launch/assets/test_mesh_display.png" width="400"></td>
-    <td></td>
+    <td><img src="launch/assets/test_frontier_display.png" width="400"></td>
   </tr>
 </table>
 
@@ -29,6 +29,7 @@ A collection of custom RViz plugins for visualizing geometry data structures and
 - **Enhanced Point Cloud Visualization**: Display point clouds with normal vectors and improved performance
 - **Occupancy Tree Visualization**: Visualize quadtrees and octrees as grids or occupancy maps
 - **Mesh Visualization**: Display triangle meshes with per-vertex/per-face colors, transparency, and backface culling
+- **Frontier Visualization**: Display 2D (line segments) or 3D (triangle faces) frontiers with color-by-ID/score modes
 - **Custom Geometry Message Support**: Specialized displays for [erl_geometry_msgs](https://github.com/ExistentialRobotics/erl_geometry_msgs)
 
 ## Available RViz Displays
@@ -91,6 +92,18 @@ Visualizes triangle meshes with optional per-vertex or per-face colors. Also sup
 - Backface culling toggle
 
 **Message Type:** `erl_geometry_msgs/MeshMsg`
+
+### Frontier Display
+Visualizes 2D or 3D frontiers extracted from occupancy trees.
+
+**Features:**
+- Display 2D frontiers as line segments or 3D frontiers as triangle faces
+- Three color modes: Uniform, By ID (golden-ratio hue spread), By Score
+- Configurable line width for 2D frontiers
+- Configurable transparency and backface culling for 3D frontiers
+- Automatic per-vertex normal computation for 3D lighting
+
+**Message Type:** `erl_geometry_msgs/FrontierArray`
 
 ## Getting Started
 
@@ -189,6 +202,7 @@ First, remember to source your workspace.
    - `erl_geometry_rviz_plugin/BetterPointCloud2`
    - `erl_geometry_rviz_plugin/GridMapDisplay`
    - `erl_geometry_rviz_plugin/MeshDisplay`
+   - `erl_geometry_rviz_plugin/FrontierDisplay`
 
 </details>
 
@@ -204,6 +218,7 @@ First, remember to source your workspace.
    - `erl_geometry_rviz_plugin/BetterPointCloud2`
    - `erl_geometry_rviz_plugin/GridMapDisplay`
    - `erl_geometry_rviz_plugin/MeshDisplay`
+   - `erl_geometry_rviz_plugin/FrontierDisplay`
 
 </details>
 
@@ -262,6 +277,24 @@ roslaunch erl_geometry_rviz_plugin test_rviz_plugin_mesh_display.launch
 
 ```bash
 ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_mesh_display_launch.py
+```
+</details>
+
+#### Frontier Display Test
+
+<details>
+<summary><b>ROS1</b></summary>
+
+```bash
+roslaunch erl_geometry_rviz_plugin test_rviz_plugin_frontier_display.launch
+```
+</details>
+
+<details>
+<summary><b>ROS2</b></summary>
+
+```bash
+ros2 launch erl_geometry_rviz_plugin test_rviz_plugin_frontier_display_launch.py
 ```
 </details>
 
