@@ -1,6 +1,6 @@
 Panels:
   - Class: rviz_common/Displays
-    Help Height: 78
+    Help Height: 85
     Name: Displays
     Property Tree Widget:
       Expanded:
@@ -9,7 +9,7 @@ Panels:
         - /OccupancyTreeGrid1
         - /FrontierDisplay1
       Splitter Ratio: 0.5
-    Tree Height: 1770
+    Tree Height: 539
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -51,37 +51,37 @@ Visualization Manager:
       Value: true
     - Class: erl_geometry/OccupancyTreeGrid
       Enabled: true
-      Max. Height: inf
+      Max. Height: 3.4028234663852886e+38
       Max. Octree Depth: 16
-      Min. Height: -inf
+      Min. Height: -3.4028234663852886e+38
       Name: OccupancyTreeGrid
       Topic:
         Depth: 5
-        Durability Policy: Transient Local
+        Durability Policy: Volatile
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /tree
       Value: true
-      Voxel Alpha: 0.3
+      Voxel Alpha: 0.30000001192092896
       Voxel Coloring: Z-Axis
       Voxel Rendering: All Voxels
-    - Class: erl_geometry/FrontierDisplay
+      Voxel Scale: 1
+    - Alpha: 1
+      Backface Culling: false
+      Class: erl_geometry/FrontierDisplay
+      Color: 0; 200; 100
+      Color Mode: By ID
       Enabled: true
+      Line Width: 3
       Name: FrontierDisplay
       Topic:
         Depth: 5
-        Durability Policy: Transient Local
-        Filter size: 10
+        Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /frontiers
       Value: true
-      Alpha: 1
-      Backface Culling: false
-      Color: 0; 200; 100
-      Color Mode: By ID
-      Line Width: 3
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -151,9 +151,10 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 2055
+  Height: 2007
   Hide Left Dock: false
   Hide Right Dock: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000003ee0000077bfc0200000005fb000000100044006900730070006c0061007900730100000041000002ae000000e800fffffffb0000001200530065006c0065006300740069006f006e01000002f60000014d0000006b00fffffffb0000001e0054006f006f006c002000500072006f0070006500720074006900650073010000044a0000014d0000006b00fffffffb0000000a00560069006500770073010000059e000001bc000000b300fffffffb0000000800540069006d006501000007610000005b0000003a00ffffff00000b090000077b00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -163,5 +164,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 3838
-  X: 0
-  Y: 0
+  X: 1080
+  Y: 50

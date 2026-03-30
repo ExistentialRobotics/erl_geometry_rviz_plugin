@@ -164,6 +164,7 @@ class TestFrontierDisplayNode : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr m_timer_;
 
     bool m_is_3d_ = true;
+    bool m_publish_frontiers_ = true;
     bool m_published_ = false;
 
     // 2D data
@@ -179,14 +180,16 @@ public:
         : rclcpp::Node("test_frontier_display_node") {
 
         this->declare_parameter("is_3d", true);
+        this->declare_parameter("publish_frontiers", true);
         m_is_3d_ = this->get_parameter("is_3d").as_bool();
+        m_publish_frontiers_ = this->get_parameter("publish_frontiers").as_bool();
 
         m_pub_frontier_ = this->create_publisher<erl_geometry_msgs::msg::FrontierArray>(
             "frontiers",
-            rclcpp::QoS(1).transient_local());
+            rclcpp::QoS(1));
         m_pub_tree_ = this->create_publisher<erl_geometry_msgs::msg::OccupancyTreeMsg>(
             "tree",
-            rclcpp::QoS(1).transient_local());
+            rclcpp::QoS(1));
 
         if (m_is_3d_) {
             RCLCPP_INFO(this->get_logger(), "Building sphere octree (3D)...");
@@ -231,8 +234,8 @@ private:
             }
         }
 
-        // publish frontiers
-        {
+        // publish frontiers (skip if extraction node handles this)
+        if (m_publish_frontiers_) {
             erl_geometry_msgs::msg::FrontierArray frontier_msg;
             if (m_is_3d_) {
                 frontier_msg =

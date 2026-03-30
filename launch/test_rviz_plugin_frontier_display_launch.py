@@ -2,7 +2,8 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration, NotSubstitution, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -16,13 +17,36 @@ def generate_launch_description():
         description="3D mode (octree + triangle frontiers) or 2D mode (quadtree + line frontiers)",
     )
 
-    # Test node: publishes both OccupancyTreeMsg and FrontierArray
+    use_extraction_node_arg = DeclareLaunchArgument(
+        "use_extraction_node",
+        default_value="false",
+        description="Use occupancy_tree_frontier_extraction_node to extract frontiers from the tree",
+    )
+
+    # Test node: publishes OccupancyTreeMsg (and optionally FrontierArray)
+    # When extraction node is used, test node only publishes the tree
     test_node = Node(
         package="erl_geometry_rviz_plugin",
         executable="test_rviz_plugin_frontier_display",
         name="test_frontier_display",
         output="screen",
-        parameters=[{"is_3d": LaunchConfiguration("is_3d")}],
+        parameters=[{
+            "is_3d": LaunchConfiguration("is_3d"),
+            "publish_frontiers": NotSubstitution(LaunchConfiguration("use_extraction_node")),
+        }],
+    )
+
+    # Frontier extraction node: subscribes to /tree and publishes /frontiers
+    frontier_extraction_node = Node(
+        package="erl_geometry_ros",
+        executable="occupancy_tree_frontier_extraction_node",
+        name="frontier_extraction",
+        output="screen",
+        parameters=[{
+            "tree_topic.path": "tree",
+            "frontier_topic.path": "frontiers",
+        }],
+        condition=IfCondition(LaunchConfiguration("use_extraction_node")),
     )
 
     # Static transform publisher (map -> odom)
@@ -63,7 +87,9 @@ def generate_launch_description():
     return LaunchDescription(
         [
             is_3d_arg,
+            use_extraction_node_arg,
             test_node,
+            frontier_extraction_node,
             map_odom_transformer,
             rviz_node,
         ]
