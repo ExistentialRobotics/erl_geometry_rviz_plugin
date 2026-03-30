@@ -1,8 +1,24 @@
 <launch>
     <arg name="is_3d" default="true" />
-    <node pkg="erl_geometry_rviz_plugin" type="test_rviz_plugin_frontier_display" name="test_rviz_plugin_frontier_display" output="screen">
+    <arg name="use_extraction_node" default="false" />
+
+    <!-- Test node: publishes OccupancyTreeMsg (and optionally FrontierArray) -->
+    <node pkg="erl_geometry_rviz_plugin" type="test_rviz_plugin_frontier_display" name="test_frontier_display" output="screen">
         <param name="is_3d" value="$(arg is_3d)" />
+        <param name="publish_frontiers" value="$(eval not arg('use_extraction_node'))" />
     </node>
+
+    <!-- Frontier extraction node: subscribes to /tree and publishes /frontiers -->
+    <group if="$(arg use_extraction_node)">
+        <node pkg="erl_geometry_ros" type="occupancy_tree_frontier_extraction_node" name="frontier_extraction" output="screen">
+            <param name="tree_topic" value="tree" />
+            <param name="frontier_topic" value="frontiers" />
+        </node>
+    </group>
+
+    <!-- Static transform publisher (map -> odom) -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="map_odom_transformer" args="0 0 0 0 0 0 1 map odom" />
+
+    <!-- RViz -->
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find erl_geometry_rviz_plugin)/rviz/test_rviz_plugin_frontier_display.rviz" />
 </launch>
