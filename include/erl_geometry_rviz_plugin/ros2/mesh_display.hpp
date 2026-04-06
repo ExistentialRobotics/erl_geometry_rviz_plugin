@@ -31,6 +31,7 @@ namespace erl::geometry::rviz_plugin {
         std::mutex m_mutex_;
 
         // mesh data buffers
+        uint8_t m_dim_ = 3;  // 2 = line segments, 3 = triangles
         std::vector<Ogre::Vector3> m_vertices_;
         std::vector<uint32_t> m_indices_;
         std::vector<Ogre::Vector3> m_normals_;

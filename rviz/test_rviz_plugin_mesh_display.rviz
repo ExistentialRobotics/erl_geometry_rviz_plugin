@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /MeshDisplay1
+        - /MeshDisplay2
       Splitter Ratio: 0.3800978660583496
     Tree Height: 1703
   - Class: rviz/Selection
@@ -59,6 +60,17 @@ Visualization Manager:
       Default Color: 180; 180; 180
       Enabled: true
       Mesh Topic: /test_rviz_plugin_mesh_display/mesh
+      Name: MeshDisplay
+      PLY File: ""
+      Queue Size: 5
+      Value: true
+    - Alpha: 1
+      Backface Culling: false
+      Class: erl_geometry/MeshDisplay
+      Compute Normals: false
+      Default Color: 180; 180; 180
+      Enabled: true
+      Mesh Topic: /test_rviz_plugin_mesh_display/mesh_2d
       Name: MeshDisplay
       PLY File: ""
       Queue Size: 5

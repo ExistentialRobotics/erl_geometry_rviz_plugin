@@ -228,7 +228,9 @@ namespace erl::geometry::rviz_plugin {
         std::lock_guard<std::mutex> lock(m_mutex_);
 
         m_header_ = msg->header;
+        m_dim_ = msg->dim;
         const auto &mesh = msg->mesh;
+        const int indices_per_face = (m_dim_ == 2) ? 2 : 3;
 
         // extract vertices
         m_vertices_.resize(mesh.vertices.size());
@@ -239,12 +241,12 @@ namespace erl::geometry::rviz_plugin {
                 static_cast<float>(mesh.vertices[i].z));
         }
 
-        // extract triangle indices
-        m_indices_.resize(mesh.triangles.size() * 3);
+        // extract indices (3 per triangle for 3D, 2 per line segment for 2D)
+        m_indices_.resize(mesh.triangles.size() * indices_per_face);
         for (size_t i = 0; i < mesh.triangles.size(); ++i) {
-            m_indices_[i * 3 + 0] = mesh.triangles[i].vertex_indices[0];
-            m_indices_[i * 3 + 1] = mesh.triangles[i].vertex_indices[1];
-            m_indices_[i * 3 + 2] = mesh.triangles[i].vertex_indices[2];
+            for (int k = 0; k < indices_per_face; ++k) {
+                m_indices_[i * indices_per_face + k] = mesh.triangles[i].vertex_indices[k];
+            }
         }
 
         // extract colors: prefer vertex_colors, then expand face_colors to per-vertex
@@ -267,7 +269,7 @@ namespace erl::geometry::rviz_plugin {
                     msg->face_colors[f].g,
                     msg->face_colors[f].b,
                     msg->face_colors[f].a);
-                for (int k = 0; k < 3; ++k) {
+                for (int k = 0; k < indices_per_face; ++k) {
                     uint32_t vi = mesh.triangles[f].vertex_indices[k];
                     if (vi < mesh.vertices.size()) {
                         m_colors_[vi] = m_colors_[vi] + fc;
@@ -280,7 +282,7 @@ namespace erl::geometry::rviz_plugin {
             }
         }
 
-        if (m_use_normals_property_->getBool()) {
+        if (m_dim_ == 3 && m_use_normals_property_->getBool()) {
             ComputeNormals();
         } else {
             m_normals_.clear();
@@ -550,9 +552,12 @@ namespace erl::geometry::rviz_plugin {
         m_material_->getTechnique(0)->getPass(0)->setDepthWriteEnabled(alpha >= 1.0f);
         m_material_->getTechnique(0)->setLightingEnabled(has_per_vertex_normals);
 
+        auto render_op = (m_dim_ == 2) ? Ogre::RenderOperation::OT_LINE_LIST
+                                       : Ogre::RenderOperation::OT_TRIANGLE_LIST;
+
         m_manual_object_->estimateVertexCount(static_cast<uint32_t>(m_vertices_.size()));
         m_manual_object_->estimateIndexCount(static_cast<uint32_t>(m_indices_.size()));
-        m_manual_object_->begin(m_material_->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
+        m_manual_object_->begin(m_material_->getName(), render_op);
 
         for (size_t i = 0; i < m_vertices_.size(); ++i) {
             m_manual_object_->position(m_vertices_[i]);
@@ -600,6 +605,7 @@ namespace erl::geometry::rviz_plugin {
     MeshDisplay::Clear() {
         std::lock_guard<std::mutex> lock(m_mutex_);
         if (m_manual_object_) { m_manual_object_->clear(); }
+        m_dim_ = 3;
         m_vertices_.clear();
         m_indices_.clear();
         m_normals_.clear();

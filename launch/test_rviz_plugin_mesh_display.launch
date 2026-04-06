@@ -3,5 +3,5 @@
         <param name="mesh_file" value="$(find erl_geometry)/data/replica-office-0.ply" />
     </node>
     <node pkg="tf2_ros" type="static_transform_publisher" name="map_odom_transformer" args="0 0 0 0 0 0 1 map odom" />
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find erl_geometry_rviz_plugin)/rviz/test_rviz_plugin_mesh_display.rviz" />
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find erl_geometry_rviz_plugin)/rviz/test_rviz_plugin_mesh_display.rviz" required="true" />
 </launch>

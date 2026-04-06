@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /MeshDisplay1
+        - /MeshDisplay2
       Splitter Ratio: 0.5
     Tree Height: 1630
   - Class: rviz_common/Selection
@@ -62,6 +63,21 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /mesh
+      Value: true
+    - Alpha: 1
+      Backface Culling: false
+      Class: erl_geometry/MeshDisplay
+      Compute Normals: true
+      Default Color: 180; 180; 180
+      Enabled: true
+      Name: MeshDisplay
+      PLY File: ""
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /mesh_2d
       Value: true
   Enabled: true
   Global Options:

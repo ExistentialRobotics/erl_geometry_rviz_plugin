@@ -6,6 +6,9 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessExit
+from launch.actions import Shutdown
 
 
 def generate_launch_description():
@@ -70,11 +73,19 @@ def generate_launch_description():
         ],
     )
 
+    shutdown_on_rviz_exit = RegisterEventHandler(
+        OnProcessExit(
+            target_action=rviz_node,
+            on_exit=[Shutdown()],  # shuts down entire launch
+        )
+    )
+
     return LaunchDescription(
         [
             mesh_file_arg,
             test_node,
             map_odom_transformer,
             rviz_node,
+            shutdown_on_rviz_exit,
         ]
     )
