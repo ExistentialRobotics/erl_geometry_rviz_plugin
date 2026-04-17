@@ -626,9 +626,6 @@ namespace erl::geometry::rviz_plugin {
         const size_t maximum_number_swatch_splittings = 4;
 
         for (size_t i = 0; i < maximum_number_swatch_splittings; ++i) {
-            RVIZ_COMMON_LOG_INFO_STREAM(
-                "Trying to create a map of size " << width << " x " << height << " using "
-                                                  << number_swatches << " swatches");
             m_swatches_.clear();
             try {
                 tryCreateSwatches(
